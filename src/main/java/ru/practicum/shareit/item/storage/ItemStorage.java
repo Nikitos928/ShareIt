@@ -18,6 +18,6 @@ public interface ItemStorage {
 
     public List<ItemDto> searchItem(String text);
 
-    public Item getItemForStorage (Long id);
+    public Item getItemForStorage(Long id);
 
 }

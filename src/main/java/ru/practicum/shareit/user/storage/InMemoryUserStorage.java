@@ -13,7 +13,9 @@ import java.util.Map;
 
 @Service
 @Qualifier("InMemoryUserStorage")
+
 public class InMemoryUserStorage implements UserStorage {
+
     UserMapper userMapper = new UserMapper();
 
     Map<Long, User> users = new HashMap<>();
@@ -37,18 +39,22 @@ public class InMemoryUserStorage implements UserStorage {
         if (user.getName() != null) {
             updateUser.setName(user.getName());
         }
+
         if (user.getEmail() != null) {
             emailList.remove(updateUser.getEmail());
             updateUser.setEmail(user.getEmail());
             emailList.add(user.getEmail());
         }
+
         users.put(updateUser.getId(), updateUser);
         return userMapper.toUserDto(updateUser);
     }
 
     @Override
     public List<UserDto> getUsers() {
+
         List<UserDto> userDtos = new ArrayList<>();
+
         for (User value : users.values()) {
             userDtos.add(userMapper.toUserDto(value));
         }
@@ -67,10 +73,12 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     public List<String> getEmailList() {
+
         return emailList;
     }
 
     public List<Long> getUserId() {
+
         return new ArrayList<>(users.keySet());
     }
 

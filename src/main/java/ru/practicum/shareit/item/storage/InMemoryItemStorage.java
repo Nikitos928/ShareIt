@@ -11,7 +11,9 @@ import java.util.stream.Collectors;
 
 @Service
 @Qualifier("InMemoryItemStorage")
+
 public class InMemoryItemStorage implements ItemStorage {
+
     ItemMapper itemMapper = new ItemMapper();
 
     Map<Long, Item> items = new HashMap<>();
@@ -47,7 +49,9 @@ public class InMemoryItemStorage implements ItemStorage {
 
     @Override
     public List<ItemDto> getItems(Long userId) {
+
         List<ItemDto> itemList = new ArrayList<>();
+
         for (Item item : items.values().stream().filter(t -> Objects.equals(t.getOwner(), userId)).collect(Collectors.toSet())) {
             itemList.add(itemMapper.toItemDto(item));
         }
@@ -56,6 +60,7 @@ public class InMemoryItemStorage implements ItemStorage {
 
     @Override
     public Item getItemForStorage(Long userId) {
+
         return items.get(userId);
     }
 
