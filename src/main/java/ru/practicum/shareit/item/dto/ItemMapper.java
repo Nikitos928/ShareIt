@@ -9,5 +9,4 @@ public class ItemMapper {
                 item.getDescription(),
                 item.getAvailable());
     }
-
 }
