@@ -3,8 +3,6 @@ package ru.practicum.shareit.user.storage;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.UserDto;
-import ru.practicum.shareit.user.UserMapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,7 +14,6 @@ import java.util.Map;
 
 public class InMemoryUserStorage implements UserStorage {
 
-    UserMapper userMapper = new UserMapper();
 
     Map<Long, User> users = new HashMap<>();
 
@@ -25,45 +22,35 @@ public class InMemoryUserStorage implements UserStorage {
     private Long id = 1L;
 
     @Override
-    public UserDto addUser(User user) {
+    public User addUser(User user) {
         emailList.add(user.getEmail());
         user.setId(id);
         users.put(id, user);
         id++;
-        return userMapper.toUserDto(user);
+        return user;
     }
 
     @Override
-    public UserDto updateUser(Long userId, User user) {
-        User updateUser = users.get(userId);
-        if (user.getName() != null) {
-            updateUser.setName(user.getName());
-        }
+    public User updateUser(Long userId, User user) {
 
-        if (user.getEmail() != null) {
-            emailList.remove(updateUser.getEmail());
-            updateUser.setEmail(user.getEmail());
-            emailList.add(user.getEmail());
-        }
+        users.put(user.getId(), user);
+        return user;
+    }
 
-        users.put(updateUser.getId(), updateUser);
-        return userMapper.toUserDto(updateUser);
+    public void updateEmail(User user, User userNew) {
+        emailList.remove(user.getEmail());
+        emailList.add(userNew.getEmail());
     }
 
     @Override
-    public List<UserDto> getUsers() {
+    public List<User> getUsers() {
 
-        List<UserDto> userDtos = new ArrayList<>();
-
-        for (User value : users.values()) {
-            userDtos.add(userMapper.toUserDto(value));
-        }
-        return userDtos;
+        return new ArrayList<>(users.values());
     }
 
     @Override
-    public UserDto getUser(Long id) {
-        return userMapper.toUserDto(users.get(id));
+    public User getUser(Long id) {
+        return users.get(id);
     }
 
     @Override

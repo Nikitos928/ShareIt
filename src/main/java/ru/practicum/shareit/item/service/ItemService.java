@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundexception;
+import ru.practicum.shareit.item.ItemMapper;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemStorage;
@@ -29,39 +30,49 @@ public class ItemService {
         this.userStorage = userStorage;
     }
 
-    public ItemDto addItem(Item item, Map<String, String> headers) throws NotFoundexception, BadRequestException {
+    public ItemDto addItem(ItemDto item, Map<String, String> headers) throws NotFoundexception, BadRequestException {
         if (item.getAvailable() == null) {
             throw new BadRequestException();
         }
         Long userId = Long.parseLong(headers.get("x-sharer-user-id"));
         checkUserId(userId);
-        item.setOwner(userId);
-        return itemStorage.addItem(item);
+        Item itemNew = ItemMapper.toItem(item);
+        itemNew.setOwner(userId);
+        return ItemMapper.toItemDto(itemStorage.addItem(itemNew));
     }
 
-    public ItemDto updateItem(Long itemId, Item item, Map<String, String> headers) throws NotFoundexception {
+    public ItemDto updateItem(Long itemId, ItemDto item, Map<String, String> headers) throws NotFoundexception {
         Long userId = Long.parseLong(headers.get("x-sharer-user-id"));
         if (!userId.equals(itemStorage.getItemForStorage(itemId).getOwner())) {
             throw new NotFoundexception("У вас нет прав на обновление придмета с ID = " + itemId);
         }
         checkUserId(userId);
-        return itemStorage.updateItem(itemId, item);
+        return ItemMapper.toItemDto(itemStorage.updateItem(itemId, ItemMapper.toItem(item)));
     }
 
     public ItemDto getItem(Long id) {
-        return itemStorage.getItem(id);
+        return ItemMapper.toItemDto(itemStorage.getItem(id));
     }
 
     public List<ItemDto> getItems(Map<String, String> headers) {
         Long userId = Long.parseLong(headers.get("x-sharer-user-id"));
-        return itemStorage.getItems(userId);
+        List<ItemDto> itemDtos = new ArrayList<>();
+        for (Item item : itemStorage.getItems(userId)) {
+            itemDtos.add(ItemMapper.toItemDto(item));
+        }
+
+        return itemDtos;
     }
 
     public List<ItemDto> searchItem(String text) {
         if (text.isEmpty()) {
             return new ArrayList<>();
         }
-        return itemStorage.searchItem(text);
+        List<ItemDto> itemDtos = new ArrayList<>();
+        for (Item item : itemStorage.searchItem(text)) {
+            itemDtos.add(ItemMapper.toItemDto(item));
+        }
+        return itemDtos;
     }
 
     public void deleteItem(Long id) {

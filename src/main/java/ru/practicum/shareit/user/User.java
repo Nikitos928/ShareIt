@@ -11,8 +11,6 @@ import javax.validation.constraints.Email;
  * TODO Sprint add-controllers.
  */
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class User {
     private Long id;

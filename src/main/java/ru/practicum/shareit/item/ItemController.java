@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundexception;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
@@ -24,7 +23,7 @@ public class ItemController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ItemDto addItem(@Valid @RequestBody Item item,
+    public ItemDto addItem(@Valid @RequestBody ItemDto item,
                            @RequestHeader Map<String, String> headers) throws NotFoundexception, BadRequestException {
 
         return itemService.addItem(item, headers);
@@ -32,7 +31,7 @@ public class ItemController {
 
     @PatchMapping("/{id}")
     public ItemDto updateItem(@PathVariable(value = "id") Long itemId,
-                              @RequestBody Item item, @RequestHeader Map<String, String> headers) throws NotFoundexception {
+                              @RequestBody ItemDto item, @RequestHeader Map<String, String> headers) throws NotFoundexception {
 
         return itemService.updateItem(itemId, item, headers);
     }

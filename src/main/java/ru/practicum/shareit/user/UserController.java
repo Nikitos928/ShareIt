@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.ValidationException;
+import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
 
 import javax.validation.Valid;
@@ -22,12 +23,12 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto addUser(@Valid @RequestBody User user) throws ValidationException, BadRequestException, BadRequestException {
+    public UserDto addUser(@Valid @RequestBody UserDto user) throws ValidationException, BadRequestException, BadRequestException {
         return userService.addUser(user);
     }
 
     @PatchMapping("/{id}")
-    public UserDto updateUser(@PathVariable(value = "id") Long userId, @Valid @RequestBody User user) throws ValidationException {
+    public UserDto updateUser(@PathVariable(value = "id") Long userId, @Valid @RequestBody UserDto user) throws ValidationException {
         return userService.updateUser(userId, user);
     }
 
