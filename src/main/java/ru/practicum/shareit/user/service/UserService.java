@@ -66,8 +66,10 @@ public class UserService {
     }
 
     private void checkEmail(UserDto user) throws ValidationException {
+
         if (userStorage.findByEmail(user.getEmail())){
             throw new ValidationException();
         }
     }
+
 }
