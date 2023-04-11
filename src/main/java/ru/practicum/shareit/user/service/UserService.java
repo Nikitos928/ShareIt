@@ -6,9 +6,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.ValidationException;
-import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserStorage;
 
 import java.util.ArrayList;
@@ -67,7 +67,7 @@ public class UserService {
 
     private void checkEmail(UserDto user) throws ValidationException {
 
-        if (userStorage.findByEmail(user.getEmail())){
+        if (userStorage.findByEmail(user.getEmail())) {
             throw new ValidationException();
         }
     }
