@@ -9,6 +9,7 @@ public class UserMapper {
     }
 
     public static User toUser(UserDto item) {
-        return  User.builder().email(item.getEmail()).id(item.getId()).name(item.getName()).build();
+        return User.builder().email(item.getEmail()).id(item.getId()).name(item.getName()).build();
+
     }
 }
