@@ -15,10 +15,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static ru.practicum.shareit.item.mapper.CommentMapper.toComment;
-import static ru.practicum.shareit.item.mapper.CommentMapper.toCommentDto;
-import static ru.practicum.shareit.item.mapper.ItemWithBookingMapper.toItemWithBookingDto;
-
 /**
  * TODO Sprint add-controllers.
  */

@@ -9,15 +9,14 @@ import ru.practicum.shareit.booking.storage.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.CommentDto;
-import ru.practicum.shareit.item.mapper.ItemMapper;
-import ru.practicum.shareit.item.mapper.ItemWithBookingMapper;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemWithBookingDto;
+import ru.practicum.shareit.item.mapper.ItemMapper;
+import ru.practicum.shareit.item.mapper.ItemWithBookingMapper;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.CommentRepository;
 import ru.practicum.shareit.item.storage.ItemRepository;
-import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
 
 import javax.transaction.Transactional;
@@ -88,22 +87,29 @@ public class ItemService {
 
     public List<ItemWithBookingDto> getItems(Long id) throws NotFoundException {
         checkUserId(id);
-        List <Booking> bookings = bookingRepository.findAll().stream().sorted(Comparator.comparing(Booking::getStart)).collect(Collectors.toList());
+
+        List<Booking> bookings = bookingRepository.findAll()
+                .stream()
+                .sorted(Comparator.comparing(Booking::getStart))
+                .collect(Collectors.toList());
+
         List<Item> items = itemStorage.getItemsByOwnerId(id);
+
         List<Item> ownerItems = new ArrayList<>();
+
         for (Item item : items) {
             if (item.getOwner().getId().equals(id)) {
                 Booking lastBooking = null;
                 Booking nextBooking = null;
-                    for (Booking booking : bookings) {
-                        if ((((booking.getEnd().isAfter(LocalDateTime.now())
-                                && booking.getStart().isBefore(LocalDateTime.now()))
-                                || booking.getEnd().isBefore(LocalDateTime.now()))
-                                && booking.getStatus().equals(Status.APPROVED))
-                                && Objects.equals(booking.getItem().getId(), item.getId())) {
-                            lastBooking = booking;
-                        }
+                for (Booking booking : bookings) {
+                    if ((((booking.getEnd().isAfter(LocalDateTime.now())
+                            && booking.getStart().isBefore(LocalDateTime.now()))
+                            || booking.getEnd().isBefore(LocalDateTime.now()))
+                            && booking.getStatus().equals(Status.APPROVED))
+                            && Objects.equals(booking.getItem().getId(), item.getId())) {
+                        lastBooking = booking;
                     }
+                }
 
                 if (lastBooking != null) {
                     bookings.remove(lastBooking);
@@ -125,18 +131,6 @@ public class ItemService {
             }
         }
         return ownerItems.stream().map(ItemWithBookingMapper::toItemWithBookingDto).collect(Collectors.toList());
-    }
-
-    private Map<Long , List <Booking>> getBookings (){
-        Map <Long , List <Booking>> bookings = new HashMap<>();
-        for (Booking booking : bookingRepository.findAll()) {
-            if (bookings.containsKey(booking.getItem().getId())) {
-                bookings.get(booking.getItem().getId()).add(booking);
-            } else {
-                bookings.put(booking.getItem().getId(), new ArrayList<>());
-            }
-        }
-        return bookings;
     }
 
     public List<ItemDto> searchItem(String text) {

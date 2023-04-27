@@ -11,9 +11,9 @@ import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -56,9 +56,10 @@ public class UserService {
 
     public UserDto getUser(Long id) throws NotFoundException {
         User user = userStorage.getReferenceById(id);
-        if (user == null){
+        if (user == null) {
             throw new NotFoundException("Пользователь с id= " + id + " не найден!");
         }
+        
         return UserMapper.toUserDto(user);
     }
 
