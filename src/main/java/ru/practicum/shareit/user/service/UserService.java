@@ -59,7 +59,6 @@ public class UserService {
         if (user == null) {
             throw new NotFoundException("Пользователь с id= " + id + " не найден!");
         }
-        
         return UserMapper.toUserDto(user);
     }
 
