@@ -10,8 +10,9 @@ import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.storage.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
-import ru.practicum.shareit.exception.InternalServerErrorException;
-import ru.practicum.shareit.exception.NotFoundexception;
+import ru.practicum.shareit.exception.InvalidStateException;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
@@ -43,7 +44,7 @@ public class BookingService {
     }
 
     @Transactional
-    public BookingDto addBooking(BookingDto booking, Long userId) throws NotFoundexception, BadRequestException {
+    public BookingDto addBooking(BookingDto booking, Long userId) throws NotFoundException, BadRequestException {
         if (booking.getStart() == null || booking.getEnd() == null) {
             throw new BadRequestException("Поля времени начала и конца должны быть заполненны");
         }
@@ -52,10 +53,19 @@ public class BookingService {
             throw new BadRequestException("Поля времени начала и конца не должны быть одинвковыми");
         }
 
-        checkUserId(userId);
+        Item item = itemRepository.getReferenceById(booking.getItemId());
 
-        checkItemById(booking.getItemId());
-        if (!itemRepository.getById(booking.getItemId()).getAvailable()) {
+        if (item == null) {
+            throw new NotFoundException("Предмет с id=" + booking.getItemId() + " не найден");
+        }
+
+        User user = userRepository.getReferenceById(userId);
+
+        if (user == null) {
+            throw new NotFoundException("Пользователь с id=" + booking.getItemId() + " не найден");
+        }
+
+        if (!item.getAvailable()) {
             throw new BadRequestException("Предмет нельзя забронировать");
         }
         if (booking.getStart().isBefore(LocalDateTime.now()) ||
@@ -63,18 +73,18 @@ public class BookingService {
                 booking.getEnd().isBefore(LocalDateTime.now())) {
             throw new BadRequestException("Некорректное время");
         }
-        if (Objects.equals(itemRepository.getById(booking.getItemId()).getOwner().getId(), userId)) {
-            throw new NotFoundexception("Владелец вещинне может забронировать предмет");
+        if (Objects.equals(item.getOwner().getId(), userId)) {
+            throw new NotFoundException("Владелец вещинне может забронировать предмет");
         }
         Booking newBooking = BookingMapper.toBooking(booking);
         newBooking.setBooker(userRepository.getById(userId));
-        newBooking.setItem(itemRepository.getById(booking.getItemId()));
+        newBooking.setItem(item);
         newBooking.setStatus(Status.WAITING);
         return BookingMapper.toBookingDto(bookingRepository.save(newBooking));
     }
 
     @Transactional
-    public BookingDto bookingApproving(Long bookingId, Boolean isApproved, Long userId) throws BadRequestException, NotFoundexception {
+    public BookingDto bookingApproving(Long bookingId, Boolean isApproved, Long userId) throws BadRequestException, NotFoundException {
         var owner = userRepository.getById(userId);
         var booking = bookingRepository.getById(bookingId);
         var item = itemRepository.getById(booking.getItem().getId());
@@ -82,7 +92,7 @@ public class BookingService {
             throw new BadRequestException("Бронирование уже одобрино");
         }
         if (item.getOwner() != owner) {
-            throw new NotFoundexception("Подтведить может только владелец");
+            throw new NotFoundException("Подтведить может только владелец");
         }
         if (isApproved) {
             booking.setStatus(Status.APPROVED);
@@ -93,21 +103,21 @@ public class BookingService {
     }
 
 
-    public Booking getById(Long bookingId, Long userId) throws NotFoundexception {
+    public BookingDto getById(Long bookingId, Long userId) throws NotFoundException {
         var user = userRepository.getById(userId);
         checkBookingById(bookingId);
         var booking = bookingRepository.getById(bookingId);
         if (booking.getBooker() != user && booking.getItem().getOwner() != user) {
-            throw new NotFoundexception("Только владелец или арендатор может получить информацию о бронировании");
+            throw new NotFoundException("Только владелец или арендатор может получить информацию о бронировании");
         }
-        return booking;
+        return BookingMapper.toBookingDto(booking);
     }
 
 
-    public List<BookingDto> getAllBookingsByUser(String state, Long userId) throws NotFoundexception {
+    public List<BookingDto> getAllBookingsByUser(String state, Long userId) throws NotFoundException, InvalidStateException {
         checkUserId(userId);
         User user = userRepository.getById(userId);
-        try {
+
             switch (checkState(state)) {
                 case CURRENT:
                     return bookingRepository.findBookingsByBookerAndStartBeforeAndEndAfterOrderByStartDesc(
@@ -115,87 +125,77 @@ public class BookingService {
                             LocalDateTime.now(),
                             LocalDateTime.now()).stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
                 case PAST:
-                    return bookingRepository.findBookingsByBookerAndEndBeforeOrderByStartDesc(
+                    return bookingRepository.findByBookerAndEndBeforeOrderByStartDesc(
                             user,
                             LocalDateTime.now()).stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
                 case FUTURE:
-                    return bookingRepository.findBookingsByBookerAndStartAfterOrderByStartDesc(
+                    return bookingRepository.findByBookerAndStartAfterOrderByStartDesc(
                             user,
                             LocalDateTime.now()).stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
                 case WAITING:
-                    return bookingRepository.findBookingsByBookerAndStatusOrderByStartDesc(user, Status.WAITING)
+                    return bookingRepository.findByBookerAndStatusOrderByStartDesc(user, Status.WAITING)
                             .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
                 case REJECTED:
-                    return bookingRepository.findBookingsByBookerAndStatusOrderByStartDesc(user, Status.REJECTED)
+                    return bookingRepository.findByBookerAndStatusOrderByStartDesc(user, Status.REJECTED)
                             .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
                 default:
-                    return bookingRepository.findBookingsByBookerOrderByStartDesc(user)
+                    return bookingRepository.findByBookerOrderByStartDesc(user)
                             .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+
     }
 
 
-    public List<BookingDto> getAllBookingItemsByUser(String state, Long userId) throws NotFoundexception {
+    public List<BookingDto> getAllBookingsByOwner(String state, Long userId) throws NotFoundException, InvalidStateException {
 
         checkUserId(userId);
         User user = userRepository.getById(userId);
-        try {
+
             switch (checkState(state)) {
                 case CURRENT:
-                    return bookingRepository.findBookingsByItem_OwnerAndStartBeforeAndEndAfterOrderByStartDesc(
+                    return bookingRepository.findByItemOwnerAndStartBeforeAndEndAfterOrderByStartDesc(
                             user,
                             LocalDateTime.now(),
                             LocalDateTime.now()).stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
                 case PAST:
-                    return bookingRepository.findBookingsByItem_OwnerAndEndBeforeOrderByStartDesc(
+                    return bookingRepository.findByItemOwnerAndEndBeforeOrderByStartDesc(
                             user,
                             LocalDateTime.now()).stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
                 case FUTURE:
-                    return bookingRepository.findBookingsByItem_OwnerAndStartAfterOrderByStartDesc(
+                    return bookingRepository.findByItemOwnerAndStartAfterOrderByStartDesc(
                             user,
                             LocalDateTime.now()).stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
                 case WAITING:
-                    return bookingRepository.findBookingsByItem_OwnerAndStatusOrderByStartDesc(user, Status.WAITING)
+                    return bookingRepository.findByItemOwnerAndStatusOrderByStartDesc(user, Status.WAITING)
                             .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
                 case REJECTED:
-                    return bookingRepository.findBookingsByItem_OwnerAndStatusOrderByStartDesc(user, Status.REJECTED)
+                    return bookingRepository.findByItemOwnerAndStatusOrderByStartDesc(user, Status.REJECTED)
                             .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
                 default:
-                    return bookingRepository.findBookingsByItem_OwnerOrderByStartDesc(user)
+                    return bookingRepository.findByItemOwnerOrderByStartDesc(user)
                             .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
-    private void checkUserId(Long id) throws NotFoundexception {
+    private void checkUserId(Long id) throws NotFoundException {
         if (!userRepository.findAll().stream().map(User::getId).collect(Collectors.toList()).contains(id)) {
-            throw new NotFoundexception("Пользователь с id= " + id + " не найден!");
+            throw new NotFoundException("Пользователь с id= " + id + " не найден!");
         }
     }
 
-    private void checkItemById(Long itemId) throws NotFoundexception {
-        if (!itemRepository.existsById(itemId)) {
-            throw new NotFoundexception("Предмет с id=" + itemId + " не найден");
-        }
-    }
 
-    private void checkBookingById(Long bookingId) throws NotFoundexception {
+    private void checkBookingById(Long bookingId) throws NotFoundException {
         if (!bookingRepository.existsById(bookingId)) {
-            throw new NotFoundexception("Бронирование с id=" + bookingId + " не найдено");
+            throw new NotFoundException("Бронирование с id=" + bookingId + " не найдено");
         }
     }
 
-    private State checkState(String state) throws InternalServerErrorException {
+    private State checkState(String state) throws InvalidStateException {
         State enumState;
         try {
             enumState = State.valueOf(state);
         } catch (IllegalArgumentException e) {
-            throw new InternalServerErrorException("Unknown state: " + state);
+            throw new InvalidStateException("Unknown state: " + state);
         }
         return enumState;
     }

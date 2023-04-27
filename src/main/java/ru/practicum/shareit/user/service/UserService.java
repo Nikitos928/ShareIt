@@ -1,10 +1,11 @@
 package ru.practicum.shareit.user.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.exception.BadRequestException;
-import ru.practicum.shareit.exception.NotFoundexception;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -30,7 +31,7 @@ public class UserService {
 
         try {
             return UserMapper.toUserDto(userStorage.save(UserMapper.toUser(user)));
-        } catch (Exception o) {
+        } catch (DataIntegrityViolationException o) {
             throw new BadRequestException();
         }
 
@@ -53,9 +54,12 @@ public class UserService {
 
     }
 
-    public UserDto getUser(Long id) throws NotFoundexception {
-        checkUserId(id);
-        return UserMapper.toUserDto(userStorage.getById(id));
+    public UserDto getUser(Long id) throws NotFoundException {
+        User user = userStorage.getReferenceById(id);
+        if (user == null){
+            throw new NotFoundException("Пользователь с id= " + id + " не найден!");
+        }
+        return UserMapper.toUserDto(user);
     }
 
     public List<UserDto> getUsers() {
@@ -72,14 +76,8 @@ public class UserService {
     }
 
     private void checkEmail(UserDto user) throws ValidationException {
-        if (userStorage.findAll().stream().map(User::getEmail).collect(Collectors.toList()).contains(user.getEmail())) {
+        if (userStorage.existsByEmail(user.getEmail())) {
             throw new ValidationException("Такой email уже используется.");
-        }
-    }
-
-    private void checkUserId(Long id) throws NotFoundexception {
-        if (!userStorage.findAll().stream().map(User::getId).collect(Collectors.toList()).contains(id)) {
-            throw new NotFoundexception("Пользователь с id= " + id + " не найден!");
         }
     }
 

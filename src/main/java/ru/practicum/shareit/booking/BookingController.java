@@ -5,8 +5,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.exception.BadRequestException;
-import ru.practicum.shareit.exception.InternalServerErrorException;
-import ru.practicum.shareit.exception.NotFoundexception;
+import ru.practicum.shareit.exception.InvalidStateException;
+import ru.practicum.shareit.exception.NotFoundException;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -23,7 +23,7 @@ public class BookingController {
 
     @PostMapping
     public BookingDto create(@Valid @RequestBody BookingDto bookingDto,
-                             @RequestHeader(value = "X-Sharer-User-Id") Long userId) throws NotFoundexception, BadRequestException {
+                             @RequestHeader(value = "X-Sharer-User-Id") Long userId) throws NotFoundException, BadRequestException {
 
         return bookingService.addBooking(bookingDto, userId);
     }
@@ -31,28 +31,28 @@ public class BookingController {
     @PatchMapping("/{bookingId}")
     public BookingDto approved(@PathVariable Long bookingId,
                                @RequestHeader(value = "X-Sharer-User-Id") Long userId,
-                               @RequestParam Boolean approved) throws NotFoundexception, BadRequestException {
+                               @RequestParam Boolean approved) throws NotFoundException, BadRequestException {
         return bookingService.bookingApproving(bookingId, approved, userId);
     }
 
     @GetMapping("/{bookingId}")
     public BookingDto findById(@PathVariable Long bookingId,
-                               @RequestHeader(value = "X-Sharer-User-Id") Long userId) throws NotFoundexception {
-        return BookingMapper.toBookingDto(bookingService.getById(bookingId, userId));
+                               @RequestHeader(value = "X-Sharer-User-Id") Long userId) throws NotFoundException {
+        return bookingService.getById(bookingId, userId);
     }
 
     @GetMapping
     public List<BookingDto> getAllBookingsByUser(@RequestHeader(value = "X-Sharer-User-Id") Long userId,
-                                                 @RequestParam(defaultValue = "ALL") String state) throws NotFoundexception, InternalServerErrorException {
+                                                 @RequestParam(defaultValue = "ALL") String state) throws NotFoundException, InvalidStateException {
 
         return bookingService.getAllBookingsByUser(state, userId);
     }
 
     @GetMapping("/owner")
-    public List<BookingDto> getAllBookingItemsByUser(@RequestHeader(value = "X-Sharer-User-Id") Long userId,
-                                                     @RequestParam(defaultValue = "ALL") String state) throws NotFoundexception, InternalServerErrorException {
+    public List<BookingDto> getAllBookingsByOwner(@RequestHeader(value = "X-Sharer-User-Id") Long userId,
+                                                     @RequestParam(defaultValue = "ALL") String state) throws NotFoundException, InvalidStateException {
 
-        return bookingService.getAllBookingItemsByUser(state, userId);
+        return bookingService.getAllBookingsByOwner(state, userId);
     }
 
 }

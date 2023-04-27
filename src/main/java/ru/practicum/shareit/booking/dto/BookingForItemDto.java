@@ -7,7 +7,6 @@ import ru.practicum.shareit.booking.model.Status;
 
 import java.time.LocalDateTime;
 
-@Data
 @Builder
 @Value
 

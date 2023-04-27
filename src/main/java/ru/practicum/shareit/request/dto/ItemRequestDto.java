@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 /**
  * TODO Sprint add-item-requests.
  */
-@Data
+
 @Builder
 @Value
 public class ItemRequestDto {
