@@ -11,6 +11,8 @@ import ru.practicum.shareit.item.dto.ItemWithBookingDto;
 import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,13 +42,15 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemWithBookingDto> readAll(@RequestHeader("X-Sharer-User-Id") Long ownerId) throws NotFoundException {
+    public List<ItemWithBookingDto> getItems(@RequestHeader("X-Sharer-User-Id") Long ownerId) throws NotFoundException {
         return itemService.getItems(ownerId).stream().sorted(Comparator.comparingLong(ItemWithBookingDto::getId)).collect(Collectors.toList());
     }
 
     @GetMapping("/search")
-    public List<ItemDto> searchItem(@RequestParam String text) {
-        return itemService.searchItem(text);
+    public List<ItemDto> searchItem(@RequestParam(defaultValue = "") String text,
+                                    @RequestParam(name = "from", defaultValue = "0") @PositiveOrZero Integer from,
+                                    @RequestParam(name = "size", defaultValue = "10") @Positive Integer size) throws BadRequestException {
+        return itemService.searchItem(text, from, size);
     }
 
     @GetMapping("/{id}")

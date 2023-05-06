@@ -13,6 +13,7 @@ import java.util.List;
  */
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -41,4 +42,7 @@ public class Item {
     private Booking nextBooking;
     @Transient
     private List<Comment> comments;
+    @Transient
+    private Long requestId;
+
 }
