@@ -39,8 +39,8 @@ public class BookingControllerTest {
     void getAllBookingsByOwner() {
         
         List<BookingDto> bookingDto = Arrays.asList(BookingDto.builder().build(), BookingDto.builder().build());
-        
-        when(bookingService.getAllBookingsByOwner(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(bookingDto);
+        when(bookingService.getAllBookingsByOwner(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+            .thenReturn(bookingDto);
 
         String result = mockMvc.perform(get("/bookings/owner")
                         .header("X-Sharer-User-Id", "1")
@@ -64,7 +64,8 @@ public class BookingControllerTest {
     void getAllBookingsByUser() {
 
         List<BookingDto> bookingDto = Arrays.asList(BookingDto.builder().build(), BookingDto.builder().build());
-        when(bookingService.getAllBookingsByUser(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(bookingDto);
+        when(bookingService.getAllBookingsByUser(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+            .thenReturn(bookingDto);
 
         String result = mockMvc.perform(get("/bookings")
                         .header("X-Sharer-User-Id", "1")
