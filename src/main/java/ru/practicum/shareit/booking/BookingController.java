@@ -9,6 +9,8 @@ import ru.practicum.shareit.exception.InvalidStateException;
 import ru.practicum.shareit.exception.NotFoundException;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 /**
@@ -43,16 +45,20 @@ public class BookingController {
 
     @GetMapping
     public List<BookingDto> getAllBookingsByUser(@RequestHeader(value = "X-Sharer-User-Id") Long userId,
-                                                 @RequestParam(defaultValue = "ALL") String state) throws NotFoundException, InvalidStateException {
+                                                 @RequestParam(defaultValue = "ALL") String state,
+                                                 @RequestParam(name = "from", defaultValue = "0") @PositiveOrZero Integer from,
+                                                 @RequestParam(name = "size", defaultValue = "10") @Positive Integer size) throws NotFoundException, InvalidStateException, BadRequestException {
 
-        return bookingService.getAllBookingsByUser(state, userId);
+        return bookingService.getAllBookingsByUser(state, userId, from, size);
     }
 
     @GetMapping("/owner")
     public List<BookingDto> getAllBookingsByOwner(@RequestHeader(value = "X-Sharer-User-Id") Long userId,
-                                                     @RequestParam(defaultValue = "ALL") String state) throws NotFoundException, InvalidStateException {
+                                                  @RequestParam(defaultValue = "ALL") String state,
+                                                  @RequestParam(name = "from", defaultValue = "0") @PositiveOrZero Integer from,
+                                                  @RequestParam(name = "size", defaultValue = "10") @Positive Integer size) throws NotFoundException, InvalidStateException, BadRequestException {
 
-        return bookingService.getAllBookingsByOwner(state, userId);
+        return bookingService.getAllBookingsByOwner(state, userId, from, size);
     }
 
 }
