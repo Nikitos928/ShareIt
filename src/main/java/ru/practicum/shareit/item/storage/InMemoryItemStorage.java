@@ -40,7 +40,6 @@ public class InMemoryItemStorage implements ItemStorage {
     }
 
 
-
     @Override
     public Item getItem(Long id) {
         return items.get(id);
