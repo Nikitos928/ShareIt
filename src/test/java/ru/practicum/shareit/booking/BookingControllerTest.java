@@ -37,7 +37,6 @@ public class BookingControllerTest {
     @SneakyThrows
     @Test
     void getAllBookingsByOwner() {
-        
         List<BookingDto> bookingDto = Arrays.asList(BookingDto.builder().build(), BookingDto.builder().build());
         when(bookingService.getAllBookingsByOwner(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
             .thenReturn(bookingDto);
