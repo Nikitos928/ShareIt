@@ -588,7 +588,6 @@ public class BookingServiceTest {
     @Test
     @SneakyThrows
     void addBooking_whenEndEqualsStart_thenBadRequestException() {
-
         BookingDto bookingDto = BookingDto.builder()
                 .id(1L)
                 .start(LocalDateTime.of(2023, 11, 11, 11, 11))
