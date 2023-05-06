@@ -30,7 +30,7 @@ public class UserServiceTest {
     private UserService userService;
 
     @Captor
-    private ArgumentCaptor <User> userArgumentCaptor;
+    private ArgumentCaptor<User> userArgumentCaptor;
 
     User user = new User(1L, "Name", "qwe@qwe.ru");
 
