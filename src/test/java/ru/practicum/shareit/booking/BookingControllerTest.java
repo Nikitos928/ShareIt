@@ -12,7 +12,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.service.BookingService;
-import ru.practicum.shareit.user.service.UserService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,7 +36,8 @@ public class BookingControllerTest {
 
     @SneakyThrows
     @Test
-    void getAllBookingsByOwner (){
+    void getAllBookingsByOwner() {
+        
         List<BookingDto> bookingDto = Arrays.asList(BookingDto.builder().build(), BookingDto.builder().build());
         when(bookingService.getAllBookingsByOwner(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(bookingDto);
 
@@ -60,15 +60,16 @@ public class BookingControllerTest {
 
     @SneakyThrows
     @Test
-    void getAllBookingsByUser (){
+    void getAllBookingsByUser() {
+
         List<BookingDto> bookingDto = Arrays.asList(BookingDto.builder().build(), BookingDto.builder().build());
         when(bookingService.getAllBookingsByUser(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(bookingDto);
 
         String result = mockMvc.perform(get("/bookings")
-                .header("X-Sharer-User-Id", "1")
-                .param("state", "ALL")
-                .param("from", "0")
-                .param("size", "2"))
+                        .header("X-Sharer-User-Id", "1")
+                        .param("state", "ALL")
+                        .param("from", "0")
+                        .param("size", "2"))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -81,7 +82,8 @@ public class BookingControllerTest {
 
     @SneakyThrows
     @Test
-    void findById (){
+    void findById() {
+
         BookingDto bookingDto = BookingDto.builder().build();
         when(bookingService.getById(Mockito.any(), Mockito.any())).thenReturn(bookingDto);
         String result = mockMvc.perform(get("/bookings/{bookingId}", 1)
@@ -97,10 +99,10 @@ public class BookingControllerTest {
     }
 
 
-
     @SneakyThrows
     @Test
-    void approved (){
+    void approved() {
+
         BookingDto bookingDto = BookingDto.builder().build();
 
         when(bookingService.bookingApproving(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(bookingDto);
@@ -121,7 +123,8 @@ public class BookingControllerTest {
 
     @SneakyThrows
     @Test
-    void create () {
+    void create() {
+
         BookingDto bookingDto = BookingDto.builder().build();
 
         when(bookingService.addBooking(Mockito.any(), Mockito.any())).thenReturn(bookingDto);
@@ -137,6 +140,6 @@ public class BookingControllerTest {
 
         Assertions.assertEquals(objectMapper.writeValueAsString(bookingDto), result);
 
-        verify(bookingService).addBooking(bookingDto,1L);
+        verify(bookingService).addBooking(bookingDto, 1L);
     }
 }
