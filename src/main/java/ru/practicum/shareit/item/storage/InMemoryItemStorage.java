@@ -2,7 +2,7 @@ package ru.practicum.shareit.item.storage;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.item.ItemMapper;
+import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.*;
@@ -36,11 +36,8 @@ public class InMemoryItemStorage implements ItemStorage {
     @Override
     public List<Item> getItems(Long userId) {
 
-        return new ArrayList<>(items.values().stream()
-                .filter(t -> Objects.equals(t.getOwner(), userId))
-                .collect(Collectors.toSet()));
+        return null;
     }
-
 
 
     @Override
