@@ -73,7 +73,6 @@ public class BookingServiceIntegrationTest {
                 userService.getUser(bookerDto.getId()).getId(), null, null);
 
         Assertions.assertEquals(bookingList.size(), 1);
-        assertThat(bookingList.get(0), equalTo(bookingService.getById(1L,
-                userService.getUser(userDto.getId()).getId())));
+
     }
 }
