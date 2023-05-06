@@ -4,12 +4,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.exception.BadRequestException;
-import ru.practicum.shareit.exception.NotFoundexception;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemWithBookingDto;
 import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * TODO Sprint add-controllers.
@@ -23,31 +27,40 @@ public class ItemController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ItemDto addItem(@Valid @RequestBody ItemDto item,
-                           @RequestHeader("X-Sharer-User-Id") Long userId) throws NotFoundexception, BadRequestException {
+                           @RequestHeader("X-Sharer-User-Id") Long userId) throws NotFoundException, BadRequestException {
 
         return itemService.addItem(item, userId);
     }
 
     @PatchMapping("/{id}")
     public ItemDto updateItem(@PathVariable(value = "id") Long itemId,
-                              @RequestBody ItemDto item, @RequestHeader("X-Sharer-User-Id") Long userId) throws NotFoundexception {
+                              @RequestBody ItemDto item, @RequestHeader("X-Sharer-User-Id") Long userId) throws NotFoundException {
 
         return itemService.updateItem(itemId, item, userId);
     }
 
     @GetMapping
-    public List<ItemDto> getItems(@RequestHeader("X-Sharer-User-Id") Long userId) {
-        return itemService.getItems(userId);
-    }
-
-    @GetMapping("/{id}")
-    public ItemDto getItem(@PathVariable(value = "id") Long itemId) {
-        return itemService.getItem(itemId);
+    public List<ItemWithBookingDto> readAll(@RequestHeader("X-Sharer-User-Id") Long ownerId) throws NotFoundException {
+        return itemService.getItems(ownerId).stream().sorted(Comparator.comparingLong(ItemWithBookingDto::getId)).collect(Collectors.toList());
     }
 
     @GetMapping("/search")
     public List<ItemDto> searchItem(@RequestParam String text) {
         return itemService.searchItem(text);
     }
+
+    @GetMapping("/{id}")
+    public ItemWithBookingDto getItem(@PathVariable Long id,
+                                      @RequestHeader(value = "X-Sharer-User-Id") Long userId) throws NotFoundException {
+        return itemService.getItem(id, userId);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto createComment(@Valid @RequestBody CommentDto commentDto,
+                                    @RequestHeader(value = "X-Sharer-User-Id") Long userId,
+                                    @PathVariable Long itemId) throws NotFoundException, BadRequestException {
+        return itemService.createComment(commentDto, itemId, userId);
+    }
+
 
 }
