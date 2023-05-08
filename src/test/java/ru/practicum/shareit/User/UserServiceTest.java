@@ -17,6 +17,7 @@ import ru.practicum.shareit.user.service.UserService;
 import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -70,7 +71,6 @@ public class UserServiceTest {
         when(userRepository.save(Mockito.any())).thenReturn(updateUser);
 
 
-
         Assertions.assertEquals(userService.updateUser(userId, updateUserDto), updateUserDto);
 
         verify(userRepository).save(userArgumentCaptor.capture());
@@ -118,7 +118,7 @@ public class UserServiceTest {
     @Test
     @SneakyThrows
     void getUser_whenUserFound_thenReturnedUser() {
-        when(userRepository.getReferenceById(userId)).thenReturn(user);
+        when(userRepository.findById(userId)).thenReturn(Optional.ofNullable(user));
 
         UserDto user1 = userService.getUser(userId);
 
@@ -127,8 +127,6 @@ public class UserServiceTest {
 
     @Test
     void getUserTrow_whenUserNotFound_thenNotFoundException() {
-        when(userRepository.getReferenceById(userId)).thenReturn(null);
-
         Assertions.assertThrows(NotFoundException.class, () -> userService.getUser(userId));
     }
 

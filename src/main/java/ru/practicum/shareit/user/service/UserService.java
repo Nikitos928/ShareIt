@@ -55,10 +55,8 @@ public class UserService {
     }
 
     public UserDto getUser(Long id) throws NotFoundException {
-        User user = userStorage.getReferenceById(id);
-        if (user == null) {
-            throw new NotFoundException("Пользователь с id= " + id + " не найден!");
-        }
+        User user = userStorage.findById(id).orElseThrow(
+                ()-> new NotFoundException("Пользователь с id= " + id + " не найден!"));
         return UserMapper.toUserDto(user);
     }
 

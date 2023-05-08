@@ -20,6 +20,7 @@ import ru.practicum.shareit.item.storage.CommentRepository;
 import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.pageapleCreator.PageableCreater;
 import ru.practicum.shareit.request.storage.ItemRequestRepository;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
 
 import javax.transaction.Transactional;
@@ -63,9 +64,11 @@ public class ItemService {
         if (item.getAvailable() == null) {
             throw new BadRequestException();
         }
-        checkUserId(userId);
+        User user = userStorage.findById(userId).orElseThrow(
+                () -> new NotFoundException("Пользователь с ID = " + userId + " не найден"));
+
         Item itemNew = ItemMapper.toItem(item);
-        itemNew.setOwner(userStorage.getById(userId));
+        itemNew.setOwner(user);
         if (item.getRequestId() != null) {
             itemNew.setRequest(itemRequestRepository.getById(item.getRequestId()));
         }
@@ -93,8 +96,9 @@ public class ItemService {
 
 
     public ItemWithBookingDto getItem(Long itemId, Long userId) throws NotFoundException {
-        checkItemId(itemId);
-        Item item = itemStorage.getById(itemId);
+        Item item = itemStorage.findById(itemId).orElseThrow(
+                () -> new NotFoundException("Предмет с id= " + itemId + " не найден"));
+
         item.setComments(commentRepository.findCommentsByItemOrderByCreatedDesc(item));
         return toItemWithBookingDto(addItemBookings(item, userId));
     }
@@ -159,11 +163,6 @@ public class ItemService {
         }
     }
 
-    private void checkItemId(Long id) throws NotFoundException {
-        if (!itemStorage.existsById(id)) {
-            throw new NotFoundException("Предмет с id= " + id + " не найден");
-        }
-    }
 
     private Item addItemBookings(Item item, Long userId) {
         if (item.getOwner().getId().equals(userId)) {
@@ -198,13 +197,13 @@ public class ItemService {
 
     @Transactional
     public CommentDto createComment(CommentDto commentDto, Long itemId, Long userId) throws NotFoundException, BadRequestException {
-        checkItemId(itemId);
-        checkUserId(userId);
 
-        List<Booking> booking = bookingRepository.findByBookerAndItemAndEndBefore(
-                userStorage.getById(userId),
-                itemStorage.getById(itemId),
-                LocalDateTime.now());
+        User user = userStorage.findById(userId).orElseThrow(
+                () -> new NotFoundException("Предмет с id= " + userId + " не найден"));
+        Item item = itemStorage.findById(itemId).orElseThrow(
+                () -> new NotFoundException("Предмет с id= " + itemId + " не найден"));
+
+        List<Booking> booking = bookingRepository.findByBookerAndItemAndEndBefore(user, item, LocalDateTime.now());
 
         if (commentDto.getText().isBlank()) {
             throw new BadRequestException("Коментарий не может быть пустым");
@@ -218,10 +217,6 @@ public class ItemService {
         } else {
             throw new BadRequestException("Что бы оставить комментарий нужно забронировать предмет");
         }
-    }
-
-    public List<Item> findItemsByRequestId(Long requestId) {
-        return itemStorage.findItemsByRequest(itemRequestRepository.getById(requestId));
     }
 
 }

@@ -60,17 +60,11 @@ public class BookingService {
             throw new BadRequestException("Поля времени начала и конца не должны быть одинвковыми");
         }
 
-        Item item = itemRepository.getReferenceById(booking.getItemId());
+        Item item = itemRepository.findById(booking.getItemId()).orElseThrow(
+                () -> new NotFoundException("Предмет с id=" + booking.getItemId() + " не найден"));
 
-        if (item == null) {
-            throw new NotFoundException("Предмет с id=" + booking.getItemId() + " не найден");
-        }
-
-        User user = userRepository.getReferenceById(userId);
-
-        if (user == null) {
-            throw new NotFoundException("Пользователь с id=" + booking.getItemId() + " не найден");
-        }
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException("Пользователь с id=" + booking.getItemId() + " не найден"));
 
         if (!item.getAvailable()) {
             throw new BadRequestException("Предмет нельзя забронировать");
@@ -122,8 +116,10 @@ public class BookingService {
 
 
     public List<BookingDto> getAllBookingsByUser(String state, Long userId, Integer from, Integer size) throws NotFoundException, InvalidStateException, BadRequestException {
-        checkUserId(userId);
-        User user = userRepository.getById(userId);
+
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException("Пользователь с id= " + userId + " не найден!"));
+
         Pageable pageable = pageableCreater.doPageable(from, size);
         switch (checkState(state)) {
             case CURRENT:
@@ -155,8 +151,8 @@ public class BookingService {
 
     public List<BookingDto> getAllBookingsByOwner(String state, Long userId, Integer from, Integer size) throws NotFoundException, InvalidStateException, BadRequestException {
 
-        checkUserId(userId);
-        User user = userRepository.getById(userId);
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException("Пользователь с id= " + userId + " не найден!"));
         Pageable pageable = pageableCreater.doPageable(from, size);
         switch (checkState(state)) {
             case CURRENT:
@@ -183,13 +179,6 @@ public class BookingService {
                         .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
         }
     }
-
-    private void checkUserId(Long id) throws NotFoundException {
-        if (!userRepository.existsById(id)) {
-            throw new NotFoundException("Пользователь с id= " + id + " не найден!");
-        }
-    }
-
 
     private void checkBookingById(Long bookingId) throws NotFoundException {
         if (!bookingRepository.existsById(bookingId)) {

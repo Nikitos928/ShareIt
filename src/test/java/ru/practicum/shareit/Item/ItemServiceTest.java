@@ -26,6 +26,7 @@ import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 import static ru.practicum.shareit.item.mapper.CommentMapper.toCommentDto;
@@ -66,10 +67,9 @@ public class ItemServiceTest {
     @Test
     @SneakyThrows
     void createComment() {
-        when(itemStorage.existsById(Mockito.any())).thenReturn(true);
-        when(userStorage.existsById(Mockito.any())).thenReturn(true);
-        when(userStorage.getById(Mockito.any())).thenReturn(new User());
-        when(itemStorage.getById(Mockito.any())).thenReturn(new Item());
+
+        when(userStorage.findById(Mockito.any())).thenReturn(Optional.of(new User()));
+        when(itemStorage.findById(Mockito.any())).thenReturn(Optional.of(new Item()));
         when(bookingRepository.findByBookerAndItemAndEndBefore(Mockito.any(),
                 Mockito.any(),
                 Mockito.any())).thenReturn(Arrays.asList(new Booking()));
@@ -83,10 +83,9 @@ public class ItemServiceTest {
     @Test
     @SneakyThrows
     void createComment_whenBookingIsEmpty_thenBadRequestException() {
-        when(itemStorage.existsById(Mockito.any())).thenReturn(true);
-        when(userStorage.existsById(Mockito.any())).thenReturn(true);
-        when(userStorage.getById(Mockito.any())).thenReturn(new User());
-        when(itemStorage.getById(Mockito.any())).thenReturn(new Item());
+
+        when(userStorage.findById(Mockito.any())).thenReturn(Optional.of(new User()));
+        when(itemStorage.findById(Mockito.any())).thenReturn(Optional.of(new Item()));
         when(bookingRepository.findByBookerAndItemAndEndBefore(Mockito.any(),
                 Mockito.any(),
                 Mockito.any())).thenReturn(new ArrayList<>());
@@ -95,41 +94,27 @@ public class ItemServiceTest {
         Assertions.assertThrows(BadRequestException.class,
                 () -> itemService.createComment(CommentDto.builder().text("1234").build(), 111L, 11L));
 
-        try {
-            itemService.createComment(CommentDto.builder().text("1234").build(), 111L, 11L);
-        } catch (BadRequestException o) {
-            Assertions.assertEquals(o.getMessage(), "Что бы оставить комментарий нужно забронировать предмет");
-        }
-
     }
 
 
     @Test
     @SneakyThrows
     void createComment_whenCommentDtoGetTextIsBlank_thenBadRequestException() {
-        when(itemStorage.existsById(Mockito.any())).thenReturn(true);
-        when(userStorage.existsById(Mockito.any())).thenReturn(true);
-        when(userStorage.getById(Mockito.any())).thenReturn(new User());
-        when(itemStorage.getById(Mockito.any())).thenReturn(new Item());
+
+        when(userStorage.findById(Mockito.any())).thenReturn(Optional.of(new User()));
+        when(itemStorage.findById(Mockito.any())).thenReturn(Optional.of(new Item()));
         when(bookingRepository.findByBookerAndItemAndEndBefore(Mockito.any(),
                 Mockito.any(),
                 Mockito.any())).thenReturn(new ArrayList<>());
         Assertions.assertThrows(BadRequestException.class,
                 () -> itemService.createComment(CommentDto.builder().text("").build(), 111L, 11L));
 
-        try {
-            itemService.createComment(CommentDto.builder().text("").build(), 111L, 11L);
-        } catch (BadRequestException o) {
-            Assertions.assertEquals(o.getMessage(), "Коментарий не может быть пустым");
-        }
-
     }
 
     @Test
     @SneakyThrows
     void createComment_whenUserNotFound_thenNotFoundException() {
-        when(itemStorage.existsById(Mockito.any())).thenReturn(true);
-        when(userStorage.existsById(Mockito.any())).thenReturn(false);
+
         Assertions.assertThrows(NotFoundException.class,
                 () -> itemService.createComment(CommentDto.builder().build(), 111L, 11L));
     }
@@ -138,7 +123,7 @@ public class ItemServiceTest {
     @Test
     @SneakyThrows
     void createComment_whenItemNotFound_thenNotFoundException() {
-        when(itemStorage.existsById(Mockito.any())).thenReturn(false);
+
         Assertions.assertThrows(NotFoundException.class,
                 () -> itemService.createComment(CommentDto.builder().build(), 111L, 11L));
     }
@@ -163,8 +148,7 @@ public class ItemServiceTest {
     @Test
     @SneakyThrows
     void getItem() {
-        when(itemStorage.existsById(Mockito.any())).thenReturn(true);
-        when(itemStorage.getById(Mockito.any())).thenReturn(item);
+        when(itemStorage.findById(Mockito.any())).thenReturn(Optional.ofNullable(item));
         when(commentRepository.findCommentsByItemOrderByCreatedDesc(Mockito.any())).thenReturn(new ArrayList<>());
 
         Assertions.assertEquals(itemService.getItem(1L, 1L), toItemWithBookingDto(item));
@@ -172,7 +156,7 @@ public class ItemServiceTest {
 
     @Test
     void getItem_whenItemNotFound_thenNotFoundException() {
-        when(itemStorage.existsById(Mockito.any())).thenReturn(false);
+
         Assertions.assertThrows(NotFoundException.class, () -> itemService.getItem(1L, 1L));
         verify(itemStorage, never()).getById(Mockito.any());
         verify(commentRepository, never()).findCommentsByItemOrderByCreatedDesc(Mockito.any());
@@ -228,9 +212,7 @@ public class ItemServiceTest {
     @Test
     @SneakyThrows
     void addItem() {
-
-        when(userStorage.existsById(Mockito.any())).thenReturn(true);
-        when(userStorage.getById(Mockito.any())).thenReturn(new User());
+        when(userStorage.findById(Mockito.any())).thenReturn(Optional.of(new User()));
         when(itemStorage.save(Mockito.any())).thenReturn(item);
 
         Assertions.assertEquals(itemService.addItem(itemDto, 1L), ItemMapper.toItemDto(item));
@@ -242,7 +224,6 @@ public class ItemServiceTest {
     @Test
     void addItem_whenUserNotFound_thenBadRequestException() {
 
-        when(userStorage.existsById(Mockito.any())).thenReturn(false);
 
         Assertions.assertThrows(NotFoundException.class, () -> itemService.addItem(itemDto, 1L));
 

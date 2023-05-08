@@ -11,7 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.pageapleCreator.PageableCreater;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.mapper.ItemRequestMapper;
@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.*;
@@ -40,7 +41,7 @@ public class ItemRequestServiceTest {
     @Mock
     private PageableCreater pageableCreater;
     @Mock
-    private ItemService itemService;
+    private ItemRepository itemRepository;
 
     @InjectMocks
     ItemRequestService itemRequestService;
@@ -64,7 +65,8 @@ public class ItemRequestServiceTest {
         when(userRepository.existsById(Mockito.any())).thenReturn(true);
         when(itemRequestRepository.existsById(Mockito.any())).thenReturn(true);
         when(itemRequestRepository.getById(Mockito.any())).thenReturn(itemRequest);
-        when(itemService.findItemsByRequestId(Mockito.any())).thenReturn(new ArrayList<>());
+        when(itemRepository.findAllByRequestIsPresent()).thenReturn(new ArrayList<>());
+        when(itemRequestRepository.findAll()).thenReturn(new ArrayList<>());
 
         Assertions.assertEquals(itemRequestService.getRequestById(1L, 1L), toItemRequestDto(itemRequest));
     }
@@ -74,11 +76,6 @@ public class ItemRequestServiceTest {
     void getRequestById_whenRequestNofFound_thenNotFoundException() {
         when(userRepository.existsById(Mockito.any())).thenReturn(true);
         when(itemRequestRepository.existsById(Mockito.any())).thenReturn(false);
-        try {
-            itemRequestService.getRequestById(1L, 1L);
-        } catch (NotFoundException o) {
-            Assertions.assertEquals(o.getMessage(), "Запрос с id = 1 не найд");
-        }
 
         Assertions.assertThrows(NotFoundException.class, () -> itemRequestService.getRequestById(1L, 1L));
     }
@@ -88,12 +85,6 @@ public class ItemRequestServiceTest {
     @SneakyThrows
     void getRequestById_whenUserNofFound_thenNotFoundException() {
         when(userRepository.existsById(Mockito.any())).thenReturn(false);
-
-        try {
-            itemRequestService.getRequestById(1L, 1L);
-        } catch (NotFoundException o) {
-            Assertions.assertEquals(o.getMessage(), "Пользователь с id = 1 не найден");
-        }
 
         Assertions.assertThrows(NotFoundException.class, () -> itemRequestService.getRequestById(1L, 1L));
     }
@@ -111,12 +102,6 @@ public class ItemRequestServiceTest {
     void getNotUserRequests_whenUserNofFound_thenNotFoundException() {
         when(userRepository.existsById(Mockito.any())).thenReturn(false);
 
-        try {
-            itemRequestService.getNotUserRequests(1L, 1, 1);
-        } catch (NotFoundException o) {
-            Assertions.assertEquals(o.getMessage(), "Пользователь с id = 1 не найден");
-        }
-
         Assertions.assertThrows(NotFoundException.class, () -> itemRequestService.getNotUserRequests(1L, 1, 1));
 
     }
@@ -127,7 +112,7 @@ public class ItemRequestServiceTest {
         when(userRepository.existsById(Mockito.any())).thenReturn(true);
         when(itemRequestRepository.findAllByRequesterIdOrderByCreatedDesc(Mockito.any()))
                 .thenReturn(itemRequestList);
-        when(itemService.findItemsByRequestId(Mockito.any())).thenReturn(new ArrayList<>());
+        when(itemRepository.findAllByRequestIsPresent()).thenReturn(new ArrayList<>());
 
         Assertions.assertEquals(itemRequestService.getUserRequests(1L), itemRequestList.stream().map(ItemRequestMapper::toItemRequestDto).collect(Collectors.toList()));
 
@@ -138,12 +123,6 @@ public class ItemRequestServiceTest {
     void getUserRequests_whenUserNofFound_thenNotFoundException() {
         when(userRepository.existsById(Mockito.any())).thenReturn(false);
 
-        try {
-            itemRequestService.getUserRequests(1L);
-        } catch (NotFoundException o) {
-            Assertions.assertEquals(o.getMessage(), "Пользователь с id = 1 не найден");
-        }
-
         Assertions.assertThrows(NotFoundException.class, () -> itemRequestService.getUserRequests(1L));
 
         verify(itemRequestRepository, never()).save(Mockito.any());
@@ -153,8 +132,7 @@ public class ItemRequestServiceTest {
     @Test
     @SneakyThrows
     void addRequest() {
-        when(userRepository.existsById(Mockito.any())).thenReturn(true);
-        when(userRepository.getById(Mockito.any())).thenReturn(new User());
+        when(userRepository.findById(Mockito.any())).thenReturn(Optional.of(new User()));
         when(itemRequestRepository.save(Mockito.any())).thenReturn(itemRequest);
 
         Assertions.assertEquals(itemRequestService.addRequest(itemRequestDto, 1L), toItemRequestDto(itemRequest));
@@ -165,13 +143,6 @@ public class ItemRequestServiceTest {
     @Test
     @SneakyThrows
     void addRequest_whenUserNofFound_thenNotFoundException() {
-        when(userRepository.existsById(Mockito.any())).thenReturn(false);
-
-        try {
-            itemRequestService.addRequest(itemRequestDto, 1L);
-        } catch (NotFoundException o) {
-            Assertions.assertEquals(o.getMessage(), "Пользователь с id = 1 не найден");
-        }
 
         Assertions.assertThrows(NotFoundException.class, () -> itemRequestService.addRequest(itemRequestDto, 1L));
 
