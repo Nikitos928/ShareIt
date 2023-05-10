@@ -21,7 +21,6 @@ import ru.practicum.shareit.user.storage.UserRepository;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -126,7 +125,7 @@ public class BookingService {
                 return bookingRepository.findByBookerAndStartBeforeAndEndAfterOrderByStartDesc(
                         user,
                         LocalDateTime.now(),
-                        LocalDateTime.now(), pageable).stream().map(BookingMapper::toBookingDto).sorted(Comparator.comparingLong(BookingDto::getId)).collect(Collectors.toList());
+                        LocalDateTime.now(), pageable).stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
             case PAST:
                 return bookingRepository.findByBookerAndEndBeforeOrderByStartDesc(
                         user,

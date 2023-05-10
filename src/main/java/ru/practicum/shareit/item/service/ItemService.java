@@ -104,9 +104,10 @@ public class ItemService {
     }
 
     public List<ItemWithBookingDto> getItems(Long id) throws NotFoundException {
-        checkUserId(id);
+        User user = userStorage.findById(id).orElseThrow(
+                () -> new NotFoundException("Пользователь с ID = " + id + " не найден"));
 
-        List<Booking> bookings = bookingRepository.findByItemOwnerOrderByStartDesc(userStorage.getById(id));
+        List<Booking> bookings = bookingRepository.findByItemOwnerOrderByStartDesc(user);
 
         List<Item> items = itemStorage.getItemsByOwnerId(id);
 

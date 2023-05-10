@@ -37,6 +37,7 @@ public class ItemRequestService {
     private final PageableCreater pageableCreater;
     private final ItemRepository itemRepository;
 
+
     public ItemRequestService(ItemRequestRepository itemRequestRepository,
                               UserRepository userRepository,
                               PageableCreater pageableCreater,
@@ -112,6 +113,7 @@ public class ItemRequestService {
     private Map<Long, List<Item>> mapItemsForRequests() {
         Map<Long, List<Item>> requestItemMap = new HashMap<>();
         List<Item> itemList = itemRepository.findAllByRequestIsPresent();
+
         List<ItemRequest> itemRequestList = itemRequestRepository.findAll();
         for (ItemRequest itemRequest : itemRequestList) {
             List<Item> itemsToAdd = new ArrayList<>();

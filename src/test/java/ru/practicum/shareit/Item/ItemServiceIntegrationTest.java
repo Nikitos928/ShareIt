@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemWithBookingDto;
 import ru.practicum.shareit.item.service.ItemService;
@@ -19,7 +18,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 
-@Transactional
 @SpringBootTest(
         properties = "db.name=test",
         webEnvironment = SpringBootTest.WebEnvironment.NONE)
@@ -34,7 +32,7 @@ public class ItemServiceIntegrationTest {
     @SneakyThrows
     void getAllItemsTest() {
 
-        UserDto user = UserDto.builder().id(1L).name("userName").email("email@mail.ru").build();
+        UserDto user = UserDto.builder().id(1L).name("userName").email("email1@mail.ru").build();
         Long userId = userService.addUser(user).getId();
 
         UserDto userOut = userService.getUser(userId);

@@ -465,7 +465,6 @@ public class BookingServiceTest {
     void addBooking_whenUserNull_thenNotFoundException() {
 
         when(itemRepository.findById(Mockito.any())).thenReturn(Optional.of(new Item()));
-        //when(userRepository.findById(Mockito.any())).thenReturn(null);
 
         BookingDto bookingDto = BookingDto.builder()
                 .id(1L)

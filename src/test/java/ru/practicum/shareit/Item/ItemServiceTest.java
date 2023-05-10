@@ -132,7 +132,7 @@ public class ItemServiceTest {
     @Test
     @SneakyThrows
     void getItems() {
-        when(userStorage.existsById(Mockito.any())).thenReturn(true);
+        when(userStorage.findById(Mockito.any())).thenReturn(Optional.of(new User()));
         when(bookingRepository.findByItemOwnerOrderByStartDesc(Mockito.any())).thenReturn(new ArrayList<>());
         when(itemStorage.getItemsByOwnerId(Mockito.any())).thenReturn(new ArrayList<>());
         Assertions.assertEquals(itemService.getItems(1L), new ArrayList<>());
@@ -141,7 +141,6 @@ public class ItemServiceTest {
 
     @Test
     void getItems_whenUserNotFound_thenNotFoundException() {
-        when(userStorage.existsById(Mockito.any())).thenReturn(false);
         Assertions.assertThrows(NotFoundException.class, () -> itemService.getItems(111L));
     }
 
