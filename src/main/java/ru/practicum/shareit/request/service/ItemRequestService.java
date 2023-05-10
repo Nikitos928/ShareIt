@@ -59,7 +59,9 @@ public class ItemRequestService {
     public List<ItemRequestDto> getUserRequests(Long userId) throws NotFoundException {
         checkUserById(userId);
         List<ItemRequest> itemRequests = itemRequestRepository.findAllByRequesterIdOrderByCreatedDesc(userId);
-        Map<Long, List<Item>> mapItemsForRequests = mapItemsForRequests();
+
+        Map<Long, List<Item>> mapItemsForRequests =
+                mapItemsForRequests(itemRequests.stream().map(ItemRequest::getId).collect(Collectors.toList()));
         for (ItemRequest itemRequest : itemRequests) {
             itemRequest.setItemList(mapItemsForRequests.get(itemRequest.getId()));
         }
@@ -73,11 +75,12 @@ public class ItemRequestService {
         Pageable pageable = pageableCreater.doPageable(from, size);
         Page<ItemRequest> itemRequestPage = itemRequestRepository.findAllByOtherUsers(userId, pageable);
 
-        Map<Long, List<Item>> mapItemsForRequests = mapItemsForRequests();
-
         for (ItemRequest itemRequest : itemRequestPage.getContent()) {
             itemRequests.add(itemRequest);
         }
+
+        Map<Long, List<Item>> mapItemsForRequests =
+                mapItemsForRequests(itemRequests.stream().map(ItemRequest::getId).collect(Collectors.toList()));
 
         for (ItemRequest itemRequest : itemRequests) {
             itemRequest.setItemList(mapItemsForRequests.get(itemRequest.getId()));
@@ -90,7 +93,9 @@ public class ItemRequestService {
         checkUserById(userId);
         checkRequestById(requestId);
         ItemRequest itemRequest = itemRequestRepository.getById(requestId);
-        Map<Long, List<Item>> mapItemsForRequests = mapItemsForRequests();
+
+
+        Map<Long, List<Item>> mapItemsForRequests = mapItemsForRequests(Arrays.asList(itemRequest.getId()));
         itemRequest.setItemList(mapItemsForRequests.get(requestId));
         return toItemRequestDto(itemRequest);
     }
@@ -107,11 +112,10 @@ public class ItemRequestService {
         }
     }
 
-    private Map<Long, List<Item>> mapItemsForRequests() {
+    private Map<Long, List<Item>> mapItemsForRequests(List<Long> requestIds) {
         Map<Long, List<Item>> requestItemMap = new HashMap<>();
-        List<Item> itemList = itemRepository.findAllByRequestIsPresent();
-
-        List<ItemRequest> itemRequestList = itemRequestRepository.findAll();
+        List<Item> itemList = itemRepository.getAllById(requestIds);
+        List<ItemRequest> itemRequestList = itemRequestRepository.getAllById(requestIds);
         for (ItemRequest itemRequest : itemRequestList) {
             List<Item> itemsToAdd = new ArrayList<>();
             for (Item item : itemList) {

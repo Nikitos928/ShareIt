@@ -23,4 +23,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     @Query("SELECT i FROM Item i WHERE i.request.id IS not null")
     List<Item> findAllByRequestIsPresent();
 
+    @Query("SELECT e FROM Item e WHERE e.request.id IN (:ids)")
+    List<Item> getAllById(List<Long> ids);
+
 }
