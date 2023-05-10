@@ -19,10 +19,7 @@ import ru.practicum.shareit.user.storage.UserRepository;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.request.mapper.ItemRequestMapper.toItemRequest;
@@ -118,7 +115,7 @@ public class ItemRequestService {
         for (ItemRequest itemRequest : itemRequestList) {
             List<Item> itemsToAdd = new ArrayList<>();
             for (Item item : itemList) {
-                if (item.getRequest().getId() == itemRequest.getId())
+                if (Objects.equals(item.getRequest().getId(), itemRequest.getId()))
                     itemsToAdd.add(item);
             }
             requestItemMap.put(itemRequest.getId(), itemsToAdd);
