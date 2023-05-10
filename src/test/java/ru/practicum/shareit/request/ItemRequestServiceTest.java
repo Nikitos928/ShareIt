@@ -77,7 +77,6 @@ public class ItemRequestServiceTest {
     void getRequestById_whenRequestNofFound_thenNotFoundException() {
         when(userRepository.existsById(Mockito.any())).thenReturn(true);
         when(itemRequestRepository.existsById(Mockito.any())).thenReturn(false);
-
         Assertions.assertThrows(NotFoundException.class, () -> itemRequestService.getRequestById(1L, 1L));
     }
 
