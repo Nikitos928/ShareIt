@@ -101,7 +101,6 @@ public class ItemRequestServiceTest {
     @SneakyThrows
     void getNotUserRequests_whenUserNofFound_thenNotFoundException() {
         when(userRepository.existsById(Mockito.any())).thenReturn(false);
-
         Assertions.assertThrows(NotFoundException.class, () -> itemRequestService.getNotUserRequests(1L, 1, 1));
 
     }
