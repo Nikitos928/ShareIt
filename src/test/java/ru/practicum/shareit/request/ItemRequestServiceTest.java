@@ -65,8 +65,9 @@ public class ItemRequestServiceTest {
         when(userRepository.existsById(Mockito.any())).thenReturn(true);
         when(itemRequestRepository.existsById(Mockito.any())).thenReturn(true);
         when(itemRequestRepository.getById(Mockito.any())).thenReturn(itemRequest);
-        when(itemRepository.findAllByRequestIsPresent()).thenReturn(new ArrayList<>());
-        when(itemRequestRepository.findAll()).thenReturn(new ArrayList<>());
+        when(itemRequestRepository.getAllById(Mockito.any()))
+                .thenReturn(itemRequestList);
+        when(itemRepository.getAllById(Mockito.any())).thenReturn(new ArrayList<>());
 
         Assertions.assertEquals(itemRequestService.getRequestById(1L, 1L), toItemRequestDto(itemRequest));
     }
@@ -110,9 +111,10 @@ public class ItemRequestServiceTest {
     @SneakyThrows
     void getUserRequests() {
         when(userRepository.existsById(Mockito.any())).thenReturn(true);
-        when(itemRequestRepository.findAllByRequesterIdOrderByCreatedDesc(Mockito.any()))
+        when(itemRequestRepository.findAllByRequesterIdOrderByCreatedDesc(Mockito.any())).thenReturn(itemRequestList);
+        when(itemRequestRepository.getAllById(Mockito.any()))
                 .thenReturn(itemRequestList);
-        when(itemRepository.findAllByRequestIsPresent()).thenReturn(new ArrayList<>());
+        when(itemRepository.getAllById(Mockito.any())).thenReturn(new ArrayList<>());
 
         Assertions.assertEquals(itemRequestService.getUserRequests(1L), itemRequestList.stream().map(ItemRequestMapper::toItemRequestDto).collect(Collectors.toList()));
 
