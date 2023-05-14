@@ -10,7 +10,7 @@ import java.util.List;
 
 import static ru.practicum.shareit.booking.BookingMapper.toBookingForItemDto;
 import static ru.practicum.shareit.item.mapper.CommentMapper.toCommentDto;
-import static ru.practicum.shareit.request.ItemRequestMapper.toItemRequestDto;
+import static ru.practicum.shareit.request.mapper.ItemRequestMapper.toItemRequestDto;
 import static ru.practicum.shareit.user.UserMapper.toUserDto;
 
 public class ItemWithBookingMapper {

@@ -1,10 +1,7 @@
 package ru.practicum.shareit.user.service;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.shareit.exception.BadRequestException;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.user.UserMapper;
@@ -15,9 +12,8 @@ import ru.practicum.shareit.user.storage.UserRepository;
 import java.util.ArrayList;
 import java.util.List;
 
-@Slf4j
 @Service
-@RestController
+@Transactional(readOnly = true)
 public class UserService {
     private final UserRepository userStorage;
 
@@ -25,19 +21,18 @@ public class UserService {
         this.userStorage = userStorage;
     }
 
-    public UserDto addUser(UserDto user) throws ValidationException, BadRequestException {
+    @Transactional
+    public UserDto addUser(UserDto user) throws ValidationException {
 
         checkEmail(user);
 
-        try {
-            return UserMapper.toUserDto(userStorage.save(UserMapper.toUser(user)));
-        } catch (DataIntegrityViolationException o) {
-            throw new BadRequestException();
-        }
+        return UserMapper.toUserDto(userStorage.save(UserMapper.toUser(user)));
 
     }
 
+    @Transactional
     public UserDto updateUser(Long userId, UserDto user) throws ValidationException {
+
         if (userStorage.getById(userId).getEmail().equals(user.getEmail())) {
             return UserMapper.toUserDto(userStorage.getById(userId));
         }
@@ -55,10 +50,8 @@ public class UserService {
     }
 
     public UserDto getUser(Long id) throws NotFoundException {
-        User user = userStorage.getReferenceById(id);
-        if (user == null) {
-            throw new NotFoundException("Пользователь с id= " + id + " не найден!");
-        }
+        User user = userStorage.findById(id).orElseThrow(
+                () -> new NotFoundException("Пользователь с id= " + id + " не найден!"));
         return UserMapper.toUserDto(user);
     }
 
@@ -71,6 +64,7 @@ public class UserService {
         return userDtos;
     }
 
+    @Transactional
     public void deleteUser(Long id) {
         userStorage.deleteById(id);
     }

@@ -1,8 +1,9 @@
 package ru.practicum.shareit.item.service;
 
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.storage.BookingRepository;
@@ -17,11 +18,15 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.CommentRepository;
 import ru.practicum.shareit.item.storage.ItemRepository;
+import ru.practicum.shareit.pageapleCreator.PageableCreater;
+import ru.practicum.shareit.request.storage.ItemRequestRepository;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
 
-import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.item.mapper.CommentMapper.toComment;
@@ -29,35 +34,48 @@ import static ru.practicum.shareit.item.mapper.CommentMapper.toCommentDto;
 import static ru.practicum.shareit.item.mapper.ItemWithBookingMapper.toItemWithBookingDto;
 
 
-@Slf4j
 @Service
-@RestController
+@Transactional(readOnly = true)
 public class ItemService {
     private final ItemRepository itemStorage;
     private final BookingRepository bookingRepository;
     private final UserRepository userStorage;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
+    private final PageableCreater pageableCreater;
 
+    @Autowired
     public ItemService(ItemRepository itemStorage,
                        UserRepository userStorage,
                        BookingRepository bookingRepository,
-                       CommentRepository commentRepository) {
+                       CommentRepository commentRepository,
+                       ItemRequestRepository itemRequestRepository,
+                       PageableCreater pageableCreater) {
         this.itemStorage = itemStorage;
         this.userStorage = userStorage;
         this.bookingRepository = bookingRepository;
         this.commentRepository = commentRepository;
+        this.itemRequestRepository = itemRequestRepository;
+        this.pageableCreater = pageableCreater;
     }
 
+    @Transactional
     public ItemDto addItem(ItemDto item, Long userId) throws NotFoundException, BadRequestException {
         if (item.getAvailable() == null) {
             throw new BadRequestException();
         }
-        checkUserId(userId);
+        User user = userStorage.findById(userId).orElseThrow(
+                () -> new NotFoundException("Пользователь с ID = " + userId + " не найден"));
+
         Item itemNew = ItemMapper.toItem(item);
-        itemNew.setOwner(userStorage.getById(userId));
+        itemNew.setOwner(user);
+        if (item.getRequestId() != null) {
+            itemNew.setRequest(itemRequestRepository.getById(item.getRequestId()));
+        }
         return ItemMapper.toItemDto(itemStorage.save(itemNew));
     }
 
+    @Transactional
     public ItemDto updateItem(Long itemId, ItemDto item, Long userId) throws NotFoundException {
         if (!userId.equals(itemStorage.getById(itemId).getOwner().getId())) {
             throw new NotFoundException("У вас нет прав на обновление придмета с ID = " + itemId);
@@ -77,72 +95,69 @@ public class ItemService {
         return ItemMapper.toItemDto(itemStorage.save(updateItem));
     }
 
-
     public ItemWithBookingDto getItem(Long itemId, Long userId) throws NotFoundException {
-        checkItemId(itemId);
-        Item item = itemStorage.getById(itemId);
+        Item item = itemStorage.findById(itemId).orElseThrow(
+                () -> new NotFoundException("Предмет с id= " + itemId + " не найден"));
+
         item.setComments(commentRepository.findCommentsByItemOrderByCreatedDesc(item));
         return toItemWithBookingDto(addItemBookings(item, userId));
     }
 
     public List<ItemWithBookingDto> getItems(Long id) throws NotFoundException {
-        checkUserId(id);
+        User user = userStorage.findById(id).orElseThrow(
+                () -> new NotFoundException("Пользователь с ID = " + id + " не найден"));
 
-        List<Booking> bookings = bookingRepository.findAll()
-                .stream()
-                .sorted(Comparator.comparing(Booking::getStart))
-                .collect(Collectors.toList());
+        List<Booking> bookings = bookingRepository.findByItemOwnerOrderByStartDesc(user);
 
         List<Item> items = itemStorage.getItemsByOwnerId(id);
 
         List<Item> ownerItems = new ArrayList<>();
-
         for (Item item : items) {
-            if (item.getOwner().getId().equals(id)) {
-                Booking lastBooking = null;
-                Booking nextBooking = null;
-                for (Booking booking : bookings) {
-                    if ((((booking.getEnd().isAfter(LocalDateTime.now())
-                            && booking.getStart().isBefore(LocalDateTime.now()))
-                            || booking.getEnd().isBefore(LocalDateTime.now()))
-                            && booking.getStatus().equals(Status.APPROVED))
-                            && Objects.equals(booking.getItem().getId(), item.getId())) {
-                        lastBooking = booking;
-                    }
+            Booking lastBooking = null;
+            Booking nextBooking = null;
+            for (Booking booking : bookings) {
+                if ((((booking.getEnd().isAfter(LocalDateTime.now())
+                        && booking.getStart().isBefore(LocalDateTime.now()))
+                        || booking.getEnd().isBefore(LocalDateTime.now()))
+                        && booking.getStatus().equals(Status.APPROVED))
+                        && Objects.equals(booking.getItem().getId(), item.getId())) {
+                    lastBooking = booking;
+                    break;
                 }
-
-                if (lastBooking != null) {
-                    bookings.remove(lastBooking);
-                }
-                for (Booking booking : bookings) {
-                    if ((booking.getStart().isAfter(LocalDateTime.now())
-                            && (booking.getStatus().equals(Status.WAITING)
-                            || booking.getStatus().equals(Status.APPROVED)))
-                            && Objects.equals(booking.getItem().getId(), item.getId())) {
-
-                        nextBooking = booking;
-                        break;
-                    }
-                }
-
-                item.setLastBooking(lastBooking);
-                item.setNextBooking(nextBooking);
-                ownerItems.add(item);
             }
+            if (lastBooking != null) {
+                bookings.remove(lastBooking);
+            }
+            for (Booking booking : bookings) {
+                if ((booking.getStart().isAfter(LocalDateTime.now())
+                        && (booking.getStatus().equals(Status.WAITING)
+                        || booking.getStatus().equals(Status.APPROVED)))
+                        && Objects.equals(booking.getItem().getId(), item.getId())) {
+                    if (nextBooking != null && nextBooking.getStart().isBefore(booking.getStart())) {
+                        continue;
+                    }
+                    nextBooking = booking;
+                }
+            }
+            item.setLastBooking(lastBooking);
+            item.setNextBooking(nextBooking);
+            ownerItems.add(item);
         }
         return ownerItems.stream().map(ItemWithBookingMapper::toItemWithBookingDto).collect(Collectors.toList());
     }
 
-    public List<ItemDto> searchItem(String text) {
+    public List<ItemDto> searchItem(String text, Integer from, Integer size) throws BadRequestException {
         if (text.isEmpty()) {
             return new ArrayList<>();
         }
-        return itemStorage.search(text).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
+        Pageable pageable = pageableCreater.doPageable(from, size);
+        return itemStorage.search(text, pageable).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
     }
 
     public void deleteItem(Long id) {
         itemStorage.deleteById(id);
     }
+
 
     private void checkUserId(Long userId) throws NotFoundException {
         if (!userStorage.existsById(userId)) {
@@ -150,11 +165,6 @@ public class ItemService {
         }
     }
 
-    private void checkItemId(Long id) throws NotFoundException {
-        if (!itemStorage.existsById(id)) {
-            throw new NotFoundException("Предмет с id= " + id + " не найден");
-        }
-    }
 
     private Item addItemBookings(Item item, Long userId) {
         if (item.getOwner().getId().equals(userId)) {
@@ -189,13 +199,13 @@ public class ItemService {
 
     @Transactional
     public CommentDto createComment(CommentDto commentDto, Long itemId, Long userId) throws NotFoundException, BadRequestException {
-        checkItemId(itemId);
-        checkUserId(userId);
 
-        List<Booking> booking = bookingRepository.findBookingByBookerAndItemAndEndBefore(
-                userStorage.getById(userId),
-                itemStorage.getById(itemId),
-                LocalDateTime.now());
+        User user = userStorage.findById(userId).orElseThrow(
+                () -> new NotFoundException("Предмет с id= " + userId + " не найден"));
+        Item item = itemStorage.findById(itemId).orElseThrow(
+                () -> new NotFoundException("Предмет с id= " + itemId + " не найден"));
+
+        List<Booking> booking = bookingRepository.findByBookerAndItemAndEndBefore(user, item, LocalDateTime.now());
 
         if (commentDto.getText().isBlank()) {
             throw new BadRequestException("Коментарий не может быть пустым");
