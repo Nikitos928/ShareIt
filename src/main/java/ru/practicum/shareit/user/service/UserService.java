@@ -1,9 +1,7 @@
 package ru.practicum.shareit.user.service;
 
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.user.UserMapper;
@@ -23,20 +21,17 @@ public class UserService {
         this.userStorage = userStorage;
     }
 
-    public UserDto addUser(UserDto user) throws ValidationException, BadRequestException {
+    @Transactional
+    public UserDto addUser(UserDto user) throws ValidationException {
 
         checkEmail(user);
 
-        try {
-            return UserMapper.toUserDto(userStorage.save(UserMapper.toUser(user)));
-        } catch (DataIntegrityViolationException o) {
-            throw new BadRequestException();
-        }
+        return UserMapper.toUserDto(userStorage.save(UserMapper.toUser(user)));
 
     }
 
+    @Transactional
     public UserDto updateUser(Long userId, UserDto user) throws ValidationException {
-
 
         if (userStorage.getById(userId).getEmail().equals(user.getEmail())) {
             return UserMapper.toUserDto(userStorage.getById(userId));
@@ -69,6 +64,7 @@ public class UserService {
         return userDtos;
     }
 
+    @Transactional
     public void deleteUser(Long id) {
         userStorage.deleteById(id);
     }

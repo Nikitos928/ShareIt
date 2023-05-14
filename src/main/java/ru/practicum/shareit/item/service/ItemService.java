@@ -59,6 +59,7 @@ public class ItemService {
         this.pageableCreater = pageableCreater;
     }
 
+    @Transactional
     public ItemDto addItem(ItemDto item, Long userId) throws NotFoundException, BadRequestException {
         if (item.getAvailable() == null) {
             throw new BadRequestException();
@@ -74,6 +75,7 @@ public class ItemService {
         return ItemMapper.toItemDto(itemStorage.save(itemNew));
     }
 
+    @Transactional
     public ItemDto updateItem(Long itemId, ItemDto item, Long userId) throws NotFoundException {
         if (!userId.equals(itemStorage.getById(itemId).getOwner().getId())) {
             throw new NotFoundException("У вас нет прав на обновление придмета с ID = " + itemId);
@@ -92,7 +94,6 @@ public class ItemService {
         }
         return ItemMapper.toItemDto(itemStorage.save(updateItem));
     }
-
 
     public ItemWithBookingDto getItem(Long itemId, Long userId) throws NotFoundException {
         Item item = itemStorage.findById(itemId).orElseThrow(
@@ -156,6 +157,7 @@ public class ItemService {
     public void deleteItem(Long id) {
         itemStorage.deleteById(id);
     }
+
 
     private void checkUserId(Long userId) throws NotFoundException {
         if (!userStorage.existsById(userId)) {
