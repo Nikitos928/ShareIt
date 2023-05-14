@@ -1,9 +1,9 @@
 package ru.practicum.shareit.item.service;
 
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.storage.BookingRepository;
@@ -23,7 +23,6 @@ import ru.practicum.shareit.request.storage.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
 
-import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,9 +34,8 @@ import static ru.practicum.shareit.item.mapper.CommentMapper.toCommentDto;
 import static ru.practicum.shareit.item.mapper.ItemWithBookingMapper.toItemWithBookingDto;
 
 
-@Slf4j
 @Service
-@RestController
+@Transactional(readOnly = true)
 public class ItemService {
     private final ItemRepository itemStorage;
     private final BookingRepository bookingRepository;
@@ -46,6 +44,7 @@ public class ItemService {
     private final ItemRequestRepository itemRequestRepository;
     private final PageableCreater pageableCreater;
 
+    @Autowired
     public ItemService(ItemRepository itemStorage,
                        UserRepository userStorage,
                        BookingRepository bookingRepository,

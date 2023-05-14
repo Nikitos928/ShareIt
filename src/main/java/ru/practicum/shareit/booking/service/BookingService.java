@@ -1,9 +1,9 @@
 package ru.practicum.shareit.booking.service;
 
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.BookingMapper;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.Booking;
@@ -19,15 +19,13 @@ import ru.practicum.shareit.pageapleCreator.PageableCreater;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
 
-import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
-@RestController
+@Transactional(readOnly = true)
 public class BookingService {
 
     private final BookingRepository bookingRepository;
@@ -39,6 +37,7 @@ public class BookingService {
     private final PageableCreater pageableCreater;
 
 
+    @Autowired
     public BookingService(BookingRepository bookingRepository,
                           UserRepository userRepository,
                           ItemRepository itemRepository,
@@ -62,8 +61,9 @@ public class BookingService {
         Item item = itemRepository.findById(booking.getItemId()).orElseThrow(
                 () -> new NotFoundException("Предмет с id=" + booking.getItemId() + " не найден"));
 
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new NotFoundException("Пользователь с id=" + booking.getItemId() + " не найден"));
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("Пользователь с id=" + booking.getItemId() + " не найден");
+        }
 
         if (!item.getAvailable()) {
             throw new BadRequestException("Предмет нельзя забронировать");

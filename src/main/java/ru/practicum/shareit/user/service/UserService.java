@@ -1,9 +1,8 @@
 package ru.practicum.shareit.user.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
@@ -15,9 +14,8 @@ import ru.practicum.shareit.user.storage.UserRepository;
 import java.util.ArrayList;
 import java.util.List;
 
-@Slf4j
 @Service
-@RestController
+@Transactional(readOnly = true)
 public class UserService {
     private final UserRepository userStorage;
 
@@ -38,6 +36,8 @@ public class UserService {
     }
 
     public UserDto updateUser(Long userId, UserDto user) throws ValidationException {
+
+
         if (userStorage.getById(userId).getEmail().equals(user.getEmail())) {
             return UserMapper.toUserDto(userStorage.getById(userId));
         }

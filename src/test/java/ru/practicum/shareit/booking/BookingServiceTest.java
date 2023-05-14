@@ -331,7 +331,7 @@ public class BookingServiceTest {
         User user = User.builder().id(22L).build();
 
         when(itemRepository.findById(Mockito.any())).thenReturn(Optional.ofNullable(Item.builder().available(true).owner(user).build()));
-        when(userRepository.findById(Mockito.any())).thenReturn(Optional.ofNullable(user));
+        when(userRepository.existsById(Mockito.any())).thenReturn(true);
         when(bookingRepository.save(Mockito.any())).thenReturn(booking);
 
         BookingDto bookingDto = BookingDto.builder()
@@ -355,7 +355,7 @@ public class BookingServiceTest {
         User user = User.builder().id(22L).build();
 
         when(itemRepository.findById(Mockito.any())).thenReturn(Optional.ofNullable(Item.builder().available(true).owner(user).build()));
-        when(userRepository.findById(Mockito.any())).thenReturn(Optional.ofNullable(user));
+        when(userRepository.existsById(Mockito.any())).thenReturn(true);
 
         BookingDto bookingDto = BookingDto.builder()
                 .id(1L)
@@ -377,7 +377,7 @@ public class BookingServiceTest {
     void addBooking_whenTimeIsNotCorrectEndInThePast_thenBadRequestException() {
 
         when(itemRepository.findById(Mockito.any())).thenReturn(Optional.ofNullable(Item.builder().available(true).build()));
-        when(userRepository.findById(Mockito.any())).thenReturn(Optional.of(new User()));
+        when(userRepository.existsById(Mockito.any())).thenReturn(true);
 
         BookingDto bookingDto = BookingDto.builder()
                 .id(1L)
@@ -399,7 +399,7 @@ public class BookingServiceTest {
     void addBooking_whenTimeIsNotCorrectStartInThePast_thenBadRequestException() {
 
         when(itemRepository.findById(Mockito.any())).thenReturn(Optional.ofNullable(Item.builder().available(true).build()));
-        when(userRepository.findById(Mockito.any())).thenReturn(Optional.of(new User()));
+        when(userRepository.existsById(Mockito.any())).thenReturn(true);
 
         BookingDto bookingDto = BookingDto.builder()
                 .id(1L)
@@ -421,7 +421,7 @@ public class BookingServiceTest {
     void addBooking_whenTimeIsNotCorrectEndAfterStart_thenBadRequestException() {
 
         when(itemRepository.findById(Mockito.any())).thenReturn(Optional.ofNullable(Item.builder().available(true).build()));
-        when(userRepository.findById(Mockito.any())).thenReturn(Optional.of(new User()));
+        when(userRepository.existsById(Mockito.any())).thenReturn(true);
 
         BookingDto bookingDto = BookingDto.builder()
                 .id(1L)
@@ -443,7 +443,7 @@ public class BookingServiceTest {
     void addBooking_whenAvailableFalse_thenBadRequestException() {
 
         when(itemRepository.findById(Mockito.any())).thenReturn(Optional.ofNullable(Item.builder().available(false).build()));
-        when(userRepository.findById(Mockito.any())).thenReturn(Optional.of(new User()));
+        when(userRepository.existsById(Mockito.any())).thenReturn(true);
 
         BookingDto bookingDto = BookingDto.builder()
                 .id(1L)

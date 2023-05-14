@@ -1,10 +1,10 @@
 package ru.practicum.shareit.request.service;
 
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
@@ -17,7 +17,6 @@ import ru.practicum.shareit.request.storage.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
 
-import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -26,8 +25,7 @@ import static ru.practicum.shareit.request.mapper.ItemRequestMapper.toItemReques
 import static ru.practicum.shareit.request.mapper.ItemRequestMapper.toItemRequestDto;
 
 @Service
-@Slf4j
-@RestController
+@Transactional(readOnly = true)
 public class ItemRequestService {
     private final ItemRequestRepository itemRequestRepository;
     private final UserRepository userRepository;
@@ -35,6 +33,7 @@ public class ItemRequestService {
     private final ItemRepository itemRepository;
 
 
+    @Autowired
     public ItemRequestService(ItemRequestRepository itemRequestRepository,
                               UserRepository userRepository,
                               PageableCreater pageableCreater,

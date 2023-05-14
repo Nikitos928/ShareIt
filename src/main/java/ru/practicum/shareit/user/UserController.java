@@ -16,11 +16,12 @@ import java.util.List;
  * TODO Sprint add-controllers.
  */
 @RestController
-@RequiredArgsConstructor
 @RequestMapping(path = "/users")
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
+
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
