@@ -7,7 +7,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
-import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.user.UserMapper;
@@ -94,7 +93,7 @@ public class UserServiceTest {
         when(userRepository.existsByEmail(user.getEmail())).thenReturn(false);
         when(userRepository.save(Mockito.any())).thenThrow(new DataIntegrityViolationException(""));
 
-        Assertions.assertThrows(BadRequestException.class, () -> userService.addUser(userDto));
+        Assertions.assertThrows(DataIntegrityViolationException.class, () -> userService.addUser(userDto));
     }
 
     @Test
