@@ -128,7 +128,7 @@ public class BookingService {
                         LocalDateTime.now(),
                         LocalDateTime.now(), pageable).stream()
                         .map(BookingMapper::toBookingDto)
-                        .sorted(Comparator.comparing(BookingDto ::getId)) // отсортировал для postman
+                        .sorted(Comparator.comparing(BookingDto::getId)) // отсортировал для postman
                         .collect(Collectors.toList());
             case PAST:
                 return bookingRepository.findByBookerAndEndBeforeOrderByStartDesc(
