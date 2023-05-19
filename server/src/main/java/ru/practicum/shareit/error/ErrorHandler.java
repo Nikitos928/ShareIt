@@ -45,20 +45,11 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleDataIntegrityViolationException(final DataIntegrityViolationException e) {
         return new ErrorResponse(
                 e.getMessage()
         );
     }
 
-
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleIllegalArgumentException(final IllegalArgumentException e) {
-        return new ErrorResponse(
-                e.getMessage()
-        );
-    }
 }

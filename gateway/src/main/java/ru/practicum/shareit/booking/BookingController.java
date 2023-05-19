@@ -15,6 +15,7 @@ import ru.practicum.shareit.exception.BadRequestException;
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
+import java.time.LocalDateTime;
 
 @Controller
 @RequestMapping(path = "/bookings")
@@ -37,8 +38,19 @@ public class BookingController {
 
 	@PostMapping
 	public ResponseEntity<Object> bookItem(@RequestHeader("X-Sharer-User-Id") long userId,
-			@RequestBody @Valid BookItemRequestDto requestDto) {
+			@RequestBody @Valid BookItemRequestDto requestDto) throws BadRequestException {
 		log.info("Creating booking {}, userId={}", requestDto, userId);
+		if (requestDto.getStart() == null || requestDto.getEnd() == null) {
+			throw new BadRequestException("Поля времени начала и конца должны быть заполненны");
+		}
+		if (requestDto.getStart().equals(requestDto.getEnd())) {
+			throw new BadRequestException("Поля времени начала и конца не должны быть одинвковыми");
+		}
+		if (requestDto.getStart().isBefore(LocalDateTime.now()) ||
+				requestDto.getStart().isAfter(requestDto.getEnd()) ||
+				requestDto.getEnd().isBefore(LocalDateTime.now())) {
+			throw new BadRequestException("Некорректное время");
+		}
 		return bookingClient.bookItem(userId, requestDto);
 	}
 

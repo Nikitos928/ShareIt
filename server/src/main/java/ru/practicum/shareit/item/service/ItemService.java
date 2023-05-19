@@ -60,10 +60,7 @@ public class ItemService {
     }
 
     @Transactional
-    public ItemDto addItem(ItemDto item, Long userId) throws NotFoundException, BadRequestException {
-        if (item.getAvailable() == null) {
-            throw new BadRequestException();
-        }
+    public ItemDto addItem(ItemDto item, Long userId) throws NotFoundException {
         User user = userStorage.findById(userId).orElseThrow(
                 () -> new NotFoundException("Пользователь с ID = " + userId + " не найден"));
 
@@ -207,9 +204,6 @@ public class ItemService {
 
         List<Booking> booking = bookingRepository.findByBookerAndItemAndEndBefore(user, item, LocalDateTime.now());
 
-        if (commentDto.getText().isBlank()) {
-            throw new BadRequestException("Коментарий не может быть пустым");
-        }
         Comment comment = toComment(commentDto);
         if (!booking.isEmpty()) {
             comment.setAuthor(userStorage.getById(userId));

@@ -4,8 +4,6 @@ import lombok.Builder;
 import lombok.Value;
 import ru.practicum.shareit.user.dto.UserDto;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -16,11 +14,8 @@ import java.util.List;
 @Value
 public class ItemDto {
     Long id;
-    @NotEmpty
     String name;
-    @NotEmpty
     String description;
-    @NotNull
     Boolean available;
     UserDto owner;
     Long requestId;

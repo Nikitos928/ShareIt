@@ -8,7 +8,6 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
@@ -49,9 +48,9 @@ public class UserServiceTest {
         UserDto updateUserDto = UserMapper.toUserDto(updateUser);
 
         when(userRepository.getById(userId)).thenReturn(user);
-        when(userRepository.existsByEmail(Mockito.any())).thenReturn(true);
+        when(userRepository.save(Mockito.any())).thenThrow(new DataIntegrityViolationException(""));
 
-        Assertions.assertThrows(ValidationException.class,
+        Assertions.assertThrows(DataIntegrityViolationException.class,
                 () -> userService.updateUser(userId, updateUserDto));
 
     }
@@ -66,7 +65,6 @@ public class UserServiceTest {
         UserDto updateUserDto = UserMapper.toUserDto(updateUser);
 
         when(userRepository.getById(userId)).thenReturn(user);
-        when(userRepository.existsByEmail(Mockito.any())).thenReturn(false);
         when(userRepository.save(Mockito.any())).thenReturn(updateUser);
 
 
@@ -83,30 +81,20 @@ public class UserServiceTest {
     @Test
     void getUsers() {
         when(userRepository.findAll()).thenReturn(Arrays.asList(user, user1));
-
         Assertions.assertEquals(userService.getUsers(), Arrays.asList(UserMapper.toUserDto(user), UserMapper.toUserDto(user1)));
     }
 
 
     @Test
     void addUser_whenUserNotSave_thenBadRequestException() {
-        when(userRepository.existsByEmail(user.getEmail())).thenReturn(false);
         when(userRepository.save(Mockito.any())).thenThrow(new DataIntegrityViolationException(""));
 
         Assertions.assertThrows(DataIntegrityViolationException.class, () -> userService.addUser(userDto));
     }
 
     @Test
-    void addUser_whenUserNotSave_thenValidationException() {
-        when(userRepository.existsByEmail(user.getEmail())).thenReturn(true);
-
-        Assertions.assertThrows(ValidationException.class, () -> userService.addUser(userDto));
-    }
-
-    @Test
     @SneakyThrows
     void addUser_whenUserSave_thenReturnedUser() {
-        when(userRepository.existsByEmail(user.getEmail())).thenReturn(false);
         when(userRepository.save(Mockito.any())).thenReturn(user);
 
         Assertions.assertEquals(userService.addUser(userDto).getId(), UserMapper.toUserDto(user).getId());

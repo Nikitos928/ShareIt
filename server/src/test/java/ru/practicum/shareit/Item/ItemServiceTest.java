@@ -230,14 +230,4 @@ public class ItemServiceTest {
 
     }
 
-
-    @Test
-    void addItem_whenUserAvailableNull_thenBadRequestException() {
-        ItemDto itemDto = ItemDto.builder().build();
-
-        Assertions.assertThrows(BadRequestException.class, () -> itemService.addItem(itemDto, 1L));
-
-        verify(itemStorage, never()).save(Mockito.any());
-    }
-
 }

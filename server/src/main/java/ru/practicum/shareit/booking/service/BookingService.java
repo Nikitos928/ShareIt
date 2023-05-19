@@ -51,13 +51,7 @@ public class BookingService {
 
     @Transactional
     public BookingDto addBooking(BookingDto booking, Long userId) throws NotFoundException, BadRequestException {
-        if (booking.getStart() == null || booking.getEnd() == null) {
-            throw new BadRequestException("Поля времени начала и конца должны быть заполненны");
-        }
 
-        if (booking.getStart().equals(booking.getEnd())) {
-            throw new BadRequestException("Поля времени начала и конца не должны быть одинвковыми");
-        }
 
         Item item = itemRepository.findById(booking.getItemId()).orElseThrow(
                 () -> new NotFoundException("Предмет с id=" + booking.getItemId() + " не найден"));
@@ -69,11 +63,7 @@ public class BookingService {
         if (!item.getAvailable()) {
             throw new BadRequestException("Предмет нельзя забронировать");
         }
-        if (booking.getStart().isBefore(LocalDateTime.now()) ||
-                booking.getStart().isAfter(booking.getEnd()) ||
-                booking.getEnd().isBefore(LocalDateTime.now())) {
-            throw new BadRequestException("Некорректное время");
-        }
+
         if (Objects.equals(item.getOwner().getId(), userId)) {
             throw new NotFoundException("Владелец вещинне может забронировать предмет");
         }
@@ -124,9 +114,9 @@ public class BookingService {
         switch (checkState(state)) {
             case CURRENT:
                 return bookingRepository.findByBookerAndStartBeforeAndEndAfterOrderByStartDesc(
-                        user,
-                        LocalDateTime.now(),
-                        LocalDateTime.now(), pageable).stream()
+                                user,
+                                LocalDateTime.now(),
+                                LocalDateTime.now(), pageable).stream()
                         .map(BookingMapper::toBookingDto)
                         .sorted(Comparator.comparing(BookingDto::getId)) // отсортировал для postman
                         .collect(Collectors.toList());

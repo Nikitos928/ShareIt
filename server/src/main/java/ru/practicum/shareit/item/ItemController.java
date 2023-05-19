@@ -10,9 +10,6 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemWithBookingDto;
 import ru.practicum.shareit.item.service.ItemService;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,8 +25,8 @@ public class ItemController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ItemDto addItem(@Valid @RequestBody ItemDto item,
-                           @RequestHeader("X-Sharer-User-Id") Long userId) throws NotFoundException, BadRequestException {
+    public ItemDto addItem(@RequestBody ItemDto item,
+                           @RequestHeader("X-Sharer-User-Id") Long userId) throws NotFoundException {
 
         return itemService.addItem(item, userId);
     }
@@ -48,8 +45,8 @@ public class ItemController {
 
     @GetMapping("/search")
     public List<ItemDto> searchItem(@RequestParam(defaultValue = "") String text,
-                                    @RequestParam(name = "from", defaultValue = "0") @PositiveOrZero Integer from,
-                                    @RequestParam(name = "size", defaultValue = "10") @Positive Integer size) throws BadRequestException {
+                                    @RequestParam(name = "from", defaultValue = "0") Integer from,
+                                    @RequestParam(name = "size", defaultValue = "10") Integer size) throws BadRequestException {
         return itemService.searchItem(text, from, size);
     }
 
@@ -60,7 +57,7 @@ public class ItemController {
     }
 
     @PostMapping("/{itemId}/comment")
-    public CommentDto createComment(@Valid @RequestBody CommentDto commentDto,
+    public CommentDto createComment(@RequestBody CommentDto commentDto,
                                     @RequestHeader(value = "X-Sharer-User-Id") Long userId,
                                     @PathVariable Long itemId) throws NotFoundException, BadRequestException {
         return itemService.createComment(commentDto, itemId, userId);

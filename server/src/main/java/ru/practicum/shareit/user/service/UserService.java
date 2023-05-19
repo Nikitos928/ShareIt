@@ -3,7 +3,6 @@ package ru.practicum.shareit.user.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
@@ -22,18 +21,16 @@ public class UserService {
     }
 
     @Transactional
-    public UserDto addUser(UserDto user) throws ValidationException {
-        checkEmail(user);
+    public UserDto addUser(UserDto user) {
         return UserMapper.toUserDto(userStorage.save(UserMapper.toUser(user)));
     }
 
     @Transactional
-    public UserDto updateUser(Long userId, UserDto user) throws ValidationException {
+    public UserDto updateUser(Long userId, UserDto user) {
 
         if (userStorage.getById(userId).getEmail().equals(user.getEmail())) {
             return UserMapper.toUserDto(userStorage.getById(userId));
         }
-        checkEmail(user);
         User updateUser = userStorage.getById(userId);
         if (user.getName() != null) {
             updateUser.setName(user.getName());
@@ -64,12 +61,6 @@ public class UserService {
     @Transactional
     public void deleteUser(Long id) {
         userStorage.deleteById(id);
-    }
-
-    private void checkEmail(UserDto user) throws ValidationException {
-        if (userStorage.existsByEmail(user.getEmail())) {
-            throw new ValidationException("Такой email уже используется.");
-        }
     }
 
 }

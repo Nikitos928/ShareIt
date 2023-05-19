@@ -7,9 +7,6 @@ import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.service.ItemRequestService;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 /**
@@ -23,7 +20,7 @@ public class ItemRequestController {
 
 
     @PostMapping
-    public ItemRequestDto addRequest(@Valid @RequestBody ItemRequestDto itemRequestDto,
+    public ItemRequestDto addRequest(@RequestBody ItemRequestDto itemRequestDto,
                                      @RequestHeader(value = "X-Sharer-User-Id") Long userId) throws NotFoundException {
         return itemRequestService.addRequest(itemRequestDto, userId);
     }
@@ -36,8 +33,8 @@ public class ItemRequestController {
 
     @GetMapping("/all")
     public List<ItemRequestDto> getNotUserRequests(@RequestHeader(value = "X-Sharer-User-Id") Long userId,
-                                                   @PositiveOrZero @RequestParam(required = false) Integer from,
-                                                   @Positive @RequestParam(required = false) Integer size) throws NotFoundException, BadRequestException {
+                                                   @RequestParam(required = false) Integer from,
+                                                   @RequestParam(required = false) Integer size) throws NotFoundException, BadRequestException {
         return itemRequestService.getNotUserRequests(userId, from, size);
     }
 

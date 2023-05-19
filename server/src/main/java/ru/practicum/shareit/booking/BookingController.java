@@ -8,9 +8,6 @@ import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.InvalidStateException;
 import ru.practicum.shareit.exception.NotFoundException;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 /**
@@ -24,7 +21,7 @@ public class BookingController {
     private final BookingService bookingService;
 
     @PostMapping
-    public BookingDto create(@Valid @RequestBody BookingDto bookingDto,
+    public BookingDto create(@RequestBody BookingDto bookingDto,
                              @RequestHeader(value = "X-Sharer-User-Id") Long userId) throws NotFoundException, BadRequestException {
 
         return bookingService.addBooking(bookingDto, userId);
@@ -46,8 +43,8 @@ public class BookingController {
     @GetMapping
     public List<BookingDto> getAllBookingsByUser(@RequestHeader(value = "X-Sharer-User-Id") Long userId,
                                                  @RequestParam(defaultValue = "ALL") String state,
-                                                 @RequestParam(name = "from", defaultValue = "0") @PositiveOrZero Integer from,
-                                                 @RequestParam(name = "size", defaultValue = "10") @Positive Integer size) throws NotFoundException, InvalidStateException, BadRequestException {
+                                                 @RequestParam(name = "from", defaultValue = "0") Integer from,
+                                                 @RequestParam(name = "size", defaultValue = "10") Integer size) throws NotFoundException, InvalidStateException, BadRequestException {
 
         return bookingService.getAllBookingsByUser(state, userId, from, size);
     }
@@ -55,8 +52,8 @@ public class BookingController {
     @GetMapping("/owner")
     public List<BookingDto> getAllBookingsByOwner(@RequestHeader(value = "X-Sharer-User-Id") Long userId,
                                                   @RequestParam(defaultValue = "ALL") String state,
-                                                  @RequestParam(name = "from", defaultValue = "0") @PositiveOrZero Integer from,
-                                                  @RequestParam(name = "size", defaultValue = "10") @Positive Integer size) throws NotFoundException, InvalidStateException, BadRequestException {
+                                                  @RequestParam(name = "from", defaultValue = "0") Integer from,
+                                                  @RequestParam(name = "size", defaultValue = "10") Integer size) throws NotFoundException, InvalidStateException, BadRequestException {
 
         return bookingService.getAllBookingsByOwner(state, userId, from, size);
     }
